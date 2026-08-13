@@ -1,0 +1,30 @@
+# Laravel
+backend/.env
+backend/.env.*
+!backend/.env.example
+
+# Laravel runtime
+backend/storage/*.key
+backend/storage/app/*
+backend/storage/framework/*
+backend/storage/logs/*
+backend/bootstrap/cache/*
+
+# Dependencies
+backend/vendor/
+backend/node_modules/
+
+# Docker
+mysql_data/
+redis_data/
+
+# IDE
+.idea/
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
