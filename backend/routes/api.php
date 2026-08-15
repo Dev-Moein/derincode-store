@@ -43,17 +43,17 @@ Route::prefix('v1')->group(function () {
         Route::post('/login', [
             AuthController::class,
             'login',
-        ]);
+        ])->middleware('throttle:login');
 
         Route::post('/forgot-password', [
             AuthController::class,
             'forgotPassword',
-        ]);
+        ])->middleware('throttle:forgot-password');
 
         Route::post('/verify-otp', [
             AuthController::class,
             'verifyOtp',
-        ]);
+        ])->middleware('throttle:verify-otp');
 
         Route::post('/reset-password', [
             AuthController::class,

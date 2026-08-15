@@ -11,6 +11,9 @@ use App\Repositories\UserRepository;
 use App\Services\AuthService;
 use App\Services\OtpService;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\RateLimiter;
 
 class RepositoryServiceProvider extends ServiceProvider
 {
@@ -38,6 +41,31 @@ class RepositoryServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        //
+           RateLimiter::for('login', function (Request $request) {
+        return Limit::perMinute(5)
+            ->by(
+                strtolower(
+                    $request->input('email', '')
+                ) . '|' . $request->ip()
+            );
+    });
+
+    RateLimiter::for('forgot-password', function (Request $request) {
+        return Limit::perMinute(3)
+            ->by(
+                strtolower(
+                    $request->input('email', '')
+                ) . '|' . $request->ip()
+            );
+    });
+
+    RateLimiter::for('verify-otp', function (Request $request) {
+        return Limit::perMinutes(5, 5)
+            ->by(
+                strtolower(
+                    $request->input('email', '')
+                ) . '|' . $request->ip()
+            );
+    });
     }
 }
