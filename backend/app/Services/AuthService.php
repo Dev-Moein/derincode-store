@@ -2,9 +2,10 @@
 
 namespace App\Services;
 
+use App\Contracts\Notifications\OtpNotificationInterface;
 use App\Contracts\Repositories\UserRepositoryInterface;
 use App\Contracts\Services\AuthServiceInterface;
-use App\Jobs\SendPasswordResetOtpJob;
+use App\Contracts\Services\OtpServiceInterface;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
@@ -14,9 +15,13 @@ class AuthService implements AuthServiceInterface
 {
     public function __construct(
         private readonly UserRepositoryInterface $userRepository,
-        private readonly OtpService $otpService,
+        private readonly OtpServiceInterface $otpService,
+        private readonly OtpNotificationInterface $otpNotification,
     ) {}
 
+    /**
+     * Register a new user.
+     */
     public function register(array $data): array
     {
         return DB::transaction(function () use ($data) {
@@ -38,6 +43,9 @@ class AuthService implements AuthServiceInterface
         });
     }
 
+    /**
+     * Login user.
+     */
     public function login(
         string $email,
         string $password
@@ -58,11 +66,17 @@ class AuthService implements AuthServiceInterface
         ];
     }
 
+    /**
+     * Logout authenticated user.
+     */
     public function logout(User $user): void
     {
         $user->currentAccessToken()?->delete();
     }
 
+    /**
+     * Generate and send password reset OTP.
+     */
     public function forgotPassword(string $email): void
     {
         $user = $this->userRepository->findByEmail($email);
@@ -73,12 +87,15 @@ class AuthService implements AuthServiceInterface
 
         $otp = $this->otpService->generate($email);
 
-        SendPasswordResetOtpJob::dispatch(
+        $this->otpNotification->send(
             $email,
             $otp
         );
     }
 
+    /**
+     * Verify password reset OTP.
+     */
     public function verifyOtp(
         string $email,
         string $otp
@@ -89,6 +106,9 @@ class AuthService implements AuthServiceInterface
         );
     }
 
+    /**
+     * Reset user password.
+     */
     public function resetPassword(
         string $email,
         string $otp,
@@ -113,10 +133,10 @@ class AuthService implements AuthServiceInterface
                 'password' => $password,
             ]);
 
-            // OTP بعد از استفاده باطل می‌شود.
+            // Invalidate OTP after successful password reset.
             $this->otpService->forget($email);
 
-            // تمام Tokenهای قبلی کاربر باطل می‌شوند.
+            // Revoke all existing access tokens.
             $user->tokens()->delete();
 
             return true;

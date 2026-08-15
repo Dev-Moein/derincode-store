@@ -2,9 +2,11 @@
 
 namespace App\Services;
 
+use App\Contracts\Services\OtpServiceInterface;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Hash;
 
-class OtpService
+class OtpService implements OtpServiceInterface
 {
     private const TTL = 300;
 
@@ -14,25 +16,42 @@ class OtpService
 
         Cache::put(
             $this->key($email),
-            $otp,
+            Hash::make($otp),
             now()->addSeconds(self::TTL)
         );
 
         return $otp;
     }
 
-    public function verify(string $email, string $otp): bool
-    {
-        return Cache::get($this->key($email)) === $otp;
+    public function verify(
+        string $email,
+        string $otp
+    ): bool {
+        $hashedOtp = Cache::get(
+            $this->key($email)
+        );
+
+        if (!$hashedOtp) {
+            return false;
+        }
+
+        return Hash::check(
+            $otp,
+            $hashedOtp
+        );
     }
 
     public function forget(string $email): void
     {
-        Cache::forget($this->key($email));
+        Cache::forget(
+            $this->key($email)
+        );
     }
 
     private function key(string $email): string
     {
-        return 'password-reset-otp:' . strtolower($email);
+        return 'password-reset-otp:' . strtolower(
+            trim($email)
+        );
     }
 }
