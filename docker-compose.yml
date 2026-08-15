@@ -17,6 +17,26 @@ services:
     networks:
       - portfolio
 
+
+  worker:
+    build:
+      context: ./docker/php
+      dockerfile: Dockerfile
+    container_name: portfolio_worker
+    restart: unless-stopped
+    working_dir: /var/www/html
+    volumes:
+      - ./backend:/var/www/html
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    command: php artisan queue:work redis --sleep=3 --tries=3 --timeout=90
+    networks:
+      - portfolio
+
+
   nginx:
     image: nginx:1.27-alpine
     container_name: portfolio_nginx
@@ -30,6 +50,7 @@ services:
       - app
     networks:
       - portfolio
+
 
   mysql:
     image: mysql:8.4
@@ -61,6 +82,7 @@ services:
     networks:
       - portfolio
 
+
   redis:
     image: redis:7-alpine
     container_name: portfolio_redis
@@ -72,6 +94,7 @@ services:
     networks:
       - portfolio
 
+
   mailpit:
     image: axllent/mailpit:latest
     container_name: portfolio_mailpit
@@ -82,9 +105,11 @@ services:
     networks:
       - portfolio
 
+
 networks:
   portfolio:
     driver: bridge
+
 
 volumes:
   mysql_data:
