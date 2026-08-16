@@ -1,0 +1,14 @@
+<?php
+
+namespace App\Contracts\Repositories;
+
+use App\Models\ProjectImage;
+
+interface ProjectImageRepositoryInterface
+{
+    public function create(array $data): ProjectImage;
+
+    public function findById(int $id): ?ProjectImage;
+
+    public function delete(ProjectImage $image): bool;
+}

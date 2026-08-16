@@ -10,6 +10,7 @@ use App\Http\Requests\Api\V1\RegisterRequest;
 use App\Http\Requests\Api\V1\ResetPasswordRequest;
 use App\Http\Requests\Api\V1\VerifyOtpRequest;
 use App\Http\Resources\Api\V1\UserResource;
+use App\Support\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -17,8 +18,7 @@ class AuthController extends Controller
 {
     public function __construct(
         private readonly AuthServiceInterface $authService,
-    ) {
-    }
+    ) {}
 
     /**
      * Register a new user.
@@ -29,17 +29,17 @@ class AuthController extends Controller
             $request->validated()
         );
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Registration successful.',
-            'data' => [
+        return ApiResponse::success(
+            data: [
                 'user' => new UserResource(
                     $result['user']->load('roles')
                 ),
                 'token' => $result['token'],
                 'token_type' => 'Bearer',
             ],
-        ], 201);
+            message: 'Registration successful.',
+            status: 201,
+        );
     }
 
     /**
@@ -53,24 +53,22 @@ class AuthController extends Controller
         );
 
         if (!$result) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Invalid credentials.',
-                'data' => null,
-            ], 401);
+            return ApiResponse::error(
+                message: 'Invalid credentials.',
+                status: 401,
+            );
         }
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Login successful.',
-            'data' => [
+        return ApiResponse::success(
+            data: [
                 'user' => new UserResource(
                     $result['user']->load('roles')
                 ),
                 'token' => $result['token'],
                 'token_type' => 'Bearer',
             ],
-        ]);
+            message: 'Login successful.',
+        );
     }
 
     /**
@@ -78,15 +76,14 @@ class AuthController extends Controller
      */
     public function me(Request $request): JsonResponse
     {
-        return response()->json([
-            'success' => true,
-            'message' => 'Authenticated user.',
-            'data' => [
+        return ApiResponse::success(
+            data: [
                 'user' => new UserResource(
                     $request->user()->load('roles')
                 ),
             ],
-        ]);
+            message: 'Authenticated user.',
+        );
     }
 
     /**
@@ -98,11 +95,9 @@ class AuthController extends Controller
             $request->user()
         );
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Logged out successfully.',
-            'data' => null,
-        ]);
+        return ApiResponse::success(
+            message: 'Logged out successfully.',
+        );
     }
 
     /**
@@ -115,17 +110,9 @@ class AuthController extends Controller
             $request->string('email')->toString()
         );
 
-        /*
-         * عمداً اطلاعاتی درباره وجود یا عدم وجود
-         * ایمیل در سیستم برنمی‌گردانیم.
-         *
-         * این کار جلوی User Enumeration را می‌گیرد.
-         */
-        return response()->json([
-            'success' => true,
-            'message' => 'If the email exists, an OTP has been sent.',
-            'data' => null,
-        ]);
+        return ApiResponse::success(
+            message: 'If the email exists, an OTP has been sent.',
+        );
     }
 
     /**
@@ -140,18 +127,15 @@ class AuthController extends Controller
         );
 
         if (!$isValid) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Invalid or expired OTP.',
-                'data' => null,
-            ], 422);
+            return ApiResponse::error(
+                message: 'Invalid or expired OTP.',
+                status: 422,
+            );
         }
 
-        return response()->json([
-            'success' => true,
-            'message' => 'OTP verified successfully.',
-            'data' => null,
-        ]);
+        return ApiResponse::success(
+            message: 'OTP verified successfully.',
+        );
     }
 
     /**
@@ -167,17 +151,14 @@ class AuthController extends Controller
         );
 
         if (!$success) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Invalid or expired OTP.',
-                'data' => null,
-            ], 422);
+            return ApiResponse::error(
+                message: 'Invalid or expired OTP.',
+                status: 422,
+            );
         }
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Password reset successfully.',
-            'data' => null,
-        ]);
+        return ApiResponse::success(
+            message: 'Password reset successfully.',
+        );
     }
 }
