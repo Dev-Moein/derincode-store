@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\V1;
 use App\Contracts\Services\ProjectImageServiceInterface;
 use App\Contracts\Services\ProjectServiceInterface;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Api\V1\ReorderProjectImagesRequest;
 use App\Http\Requests\Api\V1\StoreProjectImageRequest;
 use App\Http\Requests\Api\V1\StoreProjectRequest;
 use App\Http\Requests\Api\V1\UpdateProjectRequest;
@@ -118,33 +119,37 @@ class ProjectController extends Controller
         ]);
     }
 
-    public function storeImage(
-        StoreProjectImageRequest $request,
-        string $slug
-    ): JsonResponse {
-        $project = $this->projectService->findBySlug($slug);
+  public function storeImage(
+    StoreProjectImageRequest $request,
+    string $slug
+): JsonResponse {
+    $project = $this->projectService->findBySlug($slug);
 
-        if (!$project) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Project not found.',
-                'data' => null,
-            ], 404);
-        }
-
-        $image = $this->imageService->store(
-            project: $project,
-            file: $request->file('image'),
-            alt: $request->input('alt'),
-            sortOrder: (int) $request->input('sort_order', 0),
-        );
-
+    if (!$project) {
         return response()->json([
-            'success' => true,
-            'message' => 'Project image uploaded successfully.',
-            'data' => new ProjectImageResource($image),
-        ], 201);
+            'success' => false,
+            'message' => 'Project not found.',
+            'data' => null,
+        ], 404);
     }
+
+    $images = [];
+
+    foreach ($request->file('images') as $index => $file) {
+        $images[] = $this->imageService->store(
+            project: $project,
+            file: $file,
+            alt: $request->input('alt'),
+            sortOrder: $index,
+        );
+    }
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Project images uploaded successfully.',
+        'data' => ProjectImageResource::collection($images),
+    ], 201);
+}
 
     public function destroyImage(int $image): JsonResponse
     {
@@ -166,4 +171,37 @@ class ProjectController extends Controller
             'data' => null,
         ]);
     }
+    public function reorderImages(
+    ReorderProjectImagesRequest $request,
+    string $slug
+): JsonResponse {
+    $project = $this->projectService->findBySlug($slug);
+
+    if (!$project) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Project not found.',
+            'data' => null,
+        ], 404);
+    }
+
+    $this->imageService->reorder(
+        $project,
+        $request->validated('images')
+    );
+
+    $project->load([
+        'images' => fn ($query) => $query
+            ->orderBy('sort_order')
+            ->orderBy('id'),
+    ]);
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Project images reordered successfully.',
+        'data' => ProjectImageResource::collection(
+            $project->images
+        ),
+    ]);
+}
 }

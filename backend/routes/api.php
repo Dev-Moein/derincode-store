@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\ProjectController;
+use App\Http\Controllers\Api\V1\ProjectRequestController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
@@ -30,12 +31,6 @@ Route::prefix('v1')->group(function () {
 
     Route::prefix('auth')->group(function () {
 
-        /*
-        |--------------------------------------------------------------------------
-        | Public Routes
-        |--------------------------------------------------------------------------
-        */
-
         Route::post('/register', [
             AuthController::class,
             'register',
@@ -61,12 +56,6 @@ Route::prefix('v1')->group(function () {
             'resetPassword',
         ]);
 
-        /*
-        |--------------------------------------------------------------------------
-        | Protected Routes
-        |--------------------------------------------------------------------------
-        */
-
         Route::middleware('auth:sanctum')->group(function () {
 
             Route::get('/me', [
@@ -83,16 +72,14 @@ Route::prefix('v1')->group(function () {
 
     /*
     |--------------------------------------------------------------------------
-    | Project Routes
+    | Projects
     |--------------------------------------------------------------------------
     */
 
     Route::prefix('projects')->group(function () {
 
         /*
-        |--------------------------------------------------------------------------
-        | Public Routes
-        |--------------------------------------------------------------------------
+        | Public
         */
 
         Route::get('/', [
@@ -106,9 +93,7 @@ Route::prefix('v1')->group(function () {
         ]);
 
         /*
-        |--------------------------------------------------------------------------
-        | Protected Routes
-        |--------------------------------------------------------------------------
+        | Protected - Admin
         */
 
         Route::middleware('auth:sanctum')->group(function () {
@@ -128,9 +113,18 @@ Route::prefix('v1')->group(function () {
                 'destroy',
             ])->middleware('permission:projects.delete');
 
+            /*
+            | Project Images
+            */
+
             Route::post('/{slug}/images', [
                 ProjectController::class,
                 'storeImage',
+            ])->middleware('permission:projects.update');
+
+            Route::put('/{slug}/images/reorder', [
+                ProjectController::class,
+                'reorderImages',
             ])->middleware('permission:projects.update');
 
             Route::delete('/images/{image}', [
@@ -139,4 +133,55 @@ Route::prefix('v1')->group(function () {
             ])->middleware('permission:projects.update');
         });
     });
+
+
+
+Route::prefix('project-requests')->group(function () {
+
+    /*
+    |--------------------------------------------------------------------------
+    | Customer Routes
+    |--------------------------------------------------------------------------
+    */
+
+    Route::middleware('auth:sanctum')->group(function () {
+
+        Route::get('/', [
+            ProjectRequestController::class,
+            'index',
+        ])->middleware('permission:project-requests.view');
+
+        Route::post('/', [
+            ProjectRequestController::class,
+            'store',
+        ])->middleware('permission:project-requests.view');
+    });
+
+    /*
+    |--------------------------------------------------------------------------
+    | Admin Routes
+    |--------------------------------------------------------------------------
+    */
+
+    Route::middleware([
+        'auth:sanctum',
+        'permission:project-requests.manage',
+    ])->group(function () {
+
+        Route::get('/admin', [
+            ProjectRequestController::class,
+            'adminIndex',
+        ]);
+
+        Route::get('/admin/{id}', [
+            ProjectRequestController::class,
+            'show',
+        ]);
+
+        Route::put('/admin/{id}/status', [
+            ProjectRequestController::class,
+            'updateStatus',
+        ]);
+    });
+});
 });

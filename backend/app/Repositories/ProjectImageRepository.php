@@ -17,6 +17,17 @@ class ProjectImageRepository implements ProjectImageRepositoryInterface
         return ProjectImage::find($id);
     }
 
+    public function updateSortOrder(
+        ProjectImage $image,
+        int $sortOrder
+    ): ProjectImage {
+        $image->update([
+            'sort_order' => $sortOrder,
+        ]);
+
+        return $image->refresh();
+    }
+
     public function delete(ProjectImage $image): bool
     {
         return (bool) $image->delete();

@@ -4,7 +4,7 @@ namespace App\Http\Requests\Api\V1;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class StoreProjectImageRequest extends FormRequest
+class ReorderProjectImagesRequest extends FormRequest
 {
     public function authorize(): bool
     {
@@ -18,20 +18,18 @@ class StoreProjectImageRequest extends FormRequest
                 'required',
                 'array',
                 'min:1',
-                'max:20',
             ],
 
-            'images.*' => [
+            'images.*.id' => [
                 'required',
-                'image',
-                'mimes:jpg,jpeg,png,webp',
-                'max:5120',
+                'integer',
+                'exists:project_images,id',
             ],
 
-            'alt' => [
-                'nullable',
-                'string',
-                'max:255',
+            'images.*.sort_order' => [
+                'required',
+                'integer',
+                'min:0',
             ],
         ];
     }

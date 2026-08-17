@@ -42,6 +42,29 @@ class ProjectImageService implements ProjectImageServiceInterface
         });
     }
 
+    public function reorder(
+        Project $project,
+        array $images
+    ): void {
+        DB::transaction(function () use ($project, $images) {
+
+            foreach ($images as $imageData) {
+                $image = $project->images()
+                    ->whereKey($imageData['id'])
+                    ->first();
+
+                if (!$image) {
+                    continue;
+                }
+
+                $this->imageRepository->updateSortOrder(
+                    $image,
+                    (int) $imageData['sort_order']
+                );
+            }
+        });
+    }
+
     public function delete(ProjectImage $image): bool
     {
         return DB::transaction(function () use ($image) {

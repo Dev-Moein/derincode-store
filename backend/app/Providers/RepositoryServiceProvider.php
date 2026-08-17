@@ -3,25 +3,29 @@
 namespace App\Providers;
 
 use App\Contracts\Notifications\OtpNotificationInterface;
+use App\Contracts\Repositories\ProjectImageRepositoryInterface;
 use App\Contracts\Repositories\ProjectRepositoryInterface;
+use App\Contracts\Repositories\ProjectRequestRepositoryInterface;
 use App\Contracts\Repositories\UserRepositoryInterface;
 use App\Contracts\Services\AuthServiceInterface;
 use App\Contracts\Services\OtpServiceInterface;
+use App\Contracts\Services\ProjectImageServiceInterface;
+use App\Contracts\Services\ProjectRequestServiceInterface;
 use App\Contracts\Services\ProjectServiceInterface;
 use App\Notifications\Otp\EmailOtpNotification;
+use App\Repositories\ProjectImageRepository;
 use App\Repositories\ProjectRepository;
+use App\Repositories\ProjectRequestRepository;
 use App\Repositories\UserRepository;
 use App\Services\AuthService;
 use App\Services\OtpService;
+use App\Services\ProjectImageService;
+use App\Services\ProjectRequestService;
 use App\Services\ProjectService;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
-use App\Contracts\Repositories\ProjectImageRepositoryInterface;
-use App\Contracts\Services\ProjectImageServiceInterface;
-use App\Repositories\ProjectImageRepository;
-use App\Services\ProjectImageService;
 
 class RepositoryServiceProvider extends ServiceProvider
 {
@@ -86,6 +90,16 @@ class RepositoryServiceProvider extends ServiceProvider
 $this->app->bind(
     ProjectImageServiceInterface::class,
     ProjectImageService::class
+);
+
+
+$this->app->bind(
+    ProjectRequestRepositoryInterface::class,
+    ProjectRequestRepository::class
+);
+$this->app->bind(
+    ProjectRequestServiceInterface::class,
+    ProjectRequestService::class
 );
     }
 

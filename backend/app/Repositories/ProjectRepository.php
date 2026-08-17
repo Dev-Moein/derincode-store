@@ -11,7 +11,11 @@ class ProjectRepository implements ProjectRepositoryInterface
     public function paginate(array $filters = []): LengthAwarePaginator
     {
         $query = Project::query()
-            ->with('images');
+            ->with([
+                'images' => fn ($query) => $query
+                    ->orderBy('sort_order')
+                    ->orderBy('id'),
+            ]);
 
         if (!empty($filters['search'])) {
             $search = $filters['search'];
@@ -19,25 +23,38 @@ class ProjectRepository implements ProjectRepositoryInterface
             $query->where(function ($query) use ($search) {
                 $query
                     ->where('title', 'like', "%{$search}%")
-                    ->orWhere('short_description', 'like', "%{$search}%");
+                    ->orWhere(
+                        'short_description',
+                        'like',
+                        "%{$search}%"
+                    );
             });
         }
 
         if (!empty($filters['status'])) {
-            $query->where('status', $filters['status']);
+            $query->where(
+                'status',
+                $filters['status']
+            );
         }
 
         if (isset($filters['is_featured'])) {
             $query->where(
                 'is_featured',
-                filter_var($filters['is_featured'], FILTER_VALIDATE_BOOLEAN)
+                filter_var(
+                    $filters['is_featured'],
+                    FILTER_VALIDATE_BOOLEAN
+                )
             );
         }
 
         if (isset($filters['is_for_sale'])) {
             $query->where(
                 'is_for_sale',
-                filter_var($filters['is_for_sale'], FILTER_VALIDATE_BOOLEAN)
+                filter_var(
+                    $filters['is_for_sale'],
+                    FILTER_VALIDATE_BOOLEAN
+                )
             );
         }
 
@@ -51,12 +68,23 @@ class ProjectRepository implements ProjectRepositoryInterface
 
     public function findById(int $id): ?Project
     {
-        return Project::with('images')->find($id);
+        return Project::query()
+            ->with([
+                'images' => fn ($query) => $query
+                    ->orderBy('sort_order')
+                    ->orderBy('id'),
+            ])
+            ->find($id);
     }
 
     public function findBySlug(string $slug): ?Project
     {
-        return Project::with('images')
+        return Project::query()
+            ->with([
+                'images' => fn ($query) => $query
+                    ->orderBy('sort_order')
+                    ->orderBy('id'),
+            ])
             ->where('slug', $slug)
             ->first();
     }
@@ -66,8 +94,10 @@ class ProjectRepository implements ProjectRepositoryInterface
         return Project::create($data);
     }
 
-    public function update(Project $project, array $data): Project
-    {
+    public function update(
+        Project $project,
+        array $data
+    ): Project {
         $project->update($data);
 
         return $project->refresh();

@@ -15,5 +15,10 @@ interface ProjectImageServiceInterface
         int $sortOrder = 0
     ): ProjectImage;
 
+    public function reorder(
+        Project $project,
+        array $images
+    ): void;
+
     public function delete(ProjectImage $image): bool;
 }

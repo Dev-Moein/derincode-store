@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\ProjectRequestStatus;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -16,23 +17,28 @@ return new class extends Migration
                 ->cascadeOnDelete();
 
             $table->string('title');
+
             $table->text('description');
 
-            $table->decimal('budget', 15, 2)->nullable();
-            $table->string('currency', 3)->default('IRR');
+            $table->decimal('budget', 15, 2)
+                ->nullable();
 
-            $table->enum('status', [
-                'pending',
-                'reviewing',
-                'accepted',
-                'rejected',
-                'completed',
-                'cancelled',
-            ])->default('pending');
+            $table->string('currency', 3)
+                ->default('USD');
+
+            $table->string('status')
+                ->default(ProjectRequestStatus::PENDING->value);
+
+            $table->text('admin_note')
+                ->nullable();
+
+            $table->timestamp('reviewed_at')
+                ->nullable();
 
             $table->timestamps();
 
             $table->index(['user_id', 'status']);
+            $table->index('status');
         });
     }
 
