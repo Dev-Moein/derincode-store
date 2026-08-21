@@ -3,25 +3,31 @@
 namespace App\Providers;
 
 use App\Contracts\Notifications\OtpNotificationInterface;
+use App\Contracts\Repositories\PaymentRepositoryInterface;
 use App\Contracts\Repositories\ProjectImageRepositoryInterface;
 use App\Contracts\Repositories\ProjectRepositoryInterface;
 use App\Contracts\Repositories\ProjectRequestRepositoryInterface;
 use App\Contracts\Repositories\UserRepositoryInterface;
 use App\Contracts\Services\AuthServiceInterface;
 use App\Contracts\Services\OtpServiceInterface;
+use App\Contracts\Services\PaymentGatewayInterface;
+use App\Contracts\Services\PaymentServiceInterface;
 use App\Contracts\Services\ProjectImageServiceInterface;
 use App\Contracts\Services\ProjectRequestServiceInterface;
 use App\Contracts\Services\ProjectServiceInterface;
 use App\Notifications\Otp\EmailOtpNotification;
+use App\Repositories\PaymentRepository;
 use App\Repositories\ProjectImageRepository;
 use App\Repositories\ProjectRepository;
 use App\Repositories\ProjectRequestRepository;
 use App\Repositories\UserRepository;
 use App\Services\AuthService;
 use App\Services\OtpService;
+use App\Services\PaymentService;
 use App\Services\ProjectImageService;
 use App\Services\ProjectRequestService;
 use App\Services\ProjectService;
+use App\Services\ZarinpalService;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
@@ -100,6 +106,29 @@ $this->app->bind(
 $this->app->bind(
     ProjectRequestServiceInterface::class,
     ProjectRequestService::class
+);
+
+$this->app->bind(
+    PaymentRepositoryInterface::class,
+    PaymentRepository::class
+);
+
+$this->app->bind(
+    PaymentServiceInterface::class,
+    PaymentService::class
+);
+
+$this->app->bind(
+    PaymentGatewayInterface::class,
+    ZarinpalService::class
+);
+$this->app->bind(
+    \App\Contracts\Services\ProjectFileServiceInterface::class,
+    \App\Services\ProjectFileService::class,
+);
+$this->app->bind(
+    \App\Contracts\Services\DownloadServiceInterface::class,
+    \App\Services\DownloadService::class,
 );
     }
 

@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\Api\V1\AuthController;
+use App\Http\Controllers\Api\V1\DownloadController;
+use App\Http\Controllers\Api\V1\PaymentController;
 use App\Http\Controllers\Api\V1\ProjectController;
 use App\Http\Controllers\Api\V1\ProjectRequestController;
 use Illuminate\Support\Facades\Route;
@@ -93,10 +95,12 @@ Route::prefix('v1')->group(function () {
         ]);
 
         /*
-        | Protected - Admin
+        | Admin
         */
 
-        Route::middleware('auth:sanctum')->group(function () {
+        Route::middleware([
+            'auth:sanctum',
+        ])->group(function () {
 
             Route::post('/', [
                 ProjectController::class,
@@ -112,10 +116,6 @@ Route::prefix('v1')->group(function () {
                 ProjectController::class,
                 'destroy',
             ])->middleware('permission:projects.delete');
-
-            /*
-            | Project Images
-            */
 
             Route::post('/{slug}/images', [
                 ProjectController::class,
@@ -134,54 +134,121 @@ Route::prefix('v1')->group(function () {
         });
     });
 
-
-
-Route::prefix('project-requests')->group(function () {
-
     /*
     |--------------------------------------------------------------------------
-    | Customer Routes
+    | Project Requests
     |--------------------------------------------------------------------------
     */
 
-    Route::middleware('auth:sanctum')->group(function () {
+    Route::prefix('project-requests')->group(function () {
 
-        Route::get('/', [
-            ProjectRequestController::class,
-            'index',
-        ])->middleware('permission:project-requests.view');
+        /*
+        | Customer
+        */
 
-        Route::post('/', [
-            ProjectRequestController::class,
-            'store',
-        ])->middleware('permission:project-requests.view');
+        Route::middleware([
+            'auth:sanctum',
+        ])->group(function () {
+
+            Route::get('/', [
+                ProjectRequestController::class,
+                'index',
+            ])->middleware('permission:project-requests.view');
+
+            Route::post('/', [
+                ProjectRequestController::class,
+                'store',
+            ])->middleware('permission:project-requests.view');
+        });
+
+        /*
+        | Admin
+        */
+
+        Route::middleware([
+            'auth:sanctum',
+            'permission:project-requests.manage',
+        ])->group(function () {
+
+            Route::get('/admin', [
+                ProjectRequestController::class,
+                'adminIndex',
+            ]);
+
+            Route::get('/admin/{id}', [
+                ProjectRequestController::class,
+                'show',
+            ]);
+
+            Route::put('/admin/{id}/status', [
+                ProjectRequestController::class,
+                'updateStatus',
+            ]);
+        });
     });
 
     /*
     |--------------------------------------------------------------------------
-    | Admin Routes
+    | Payments
     |--------------------------------------------------------------------------
     */
 
-    Route::middleware([
-        'auth:sanctum',
-        'permission:project-requests.manage',
-    ])->group(function () {
+    Route::prefix('payments')
+        ->middleware('auth:sanctum')
+        ->group(function () {
 
-        Route::get('/admin', [
-            ProjectRequestController::class,
-            'adminIndex',
-        ]);
+            Route::get('/', [
+                PaymentController::class,
+                'index',
+            ]);
 
-        Route::get('/admin/{id}', [
-            ProjectRequestController::class,
-            'show',
-        ]);
+            Route::post('/', [
+                PaymentController::class,
+                'store',
+            ]);
 
-        Route::put('/admin/{id}/status', [
-            ProjectRequestController::class,
-            'updateStatus',
-        ]);
-    });
-});
+            Route::get('/{id}', [
+                PaymentController::class,
+                'show',
+            ]);
+        });
+
+    /*
+    |--------------------------------------------------------------------------
+    | Payment Callback
+    |--------------------------------------------------------------------------
+    |
+    | Public route because Zarinpal redirects the user here.
+    |
+    */
+
+    Route::get('/payments/{payment}/callback', [
+        PaymentController::class,
+        'callback',
+    ])->name('payments.callback');
+
+    /*
+    |--------------------------------------------------------------------------
+    | Downloads
+    |--------------------------------------------------------------------------
+    |
+    | Authenticated customers can download projects they have successfully
+    | purchased.
+    |
+    */
+
+    Route::prefix('downloads')
+        ->middleware('auth:sanctum')
+        ->group(function () {
+
+            Route::get('/projects/{project}', [
+                DownloadController::class,
+                'download',
+            ])->name('downloads.project');
+
+            Route::get('/', [
+                DownloadController::class,
+                'index',
+            ])->name('downloads.index');
+        });
 });

@@ -39,6 +39,7 @@ class StoreProjectRequestRequest extends FormRequest
                 'size:3',
                 'uppercase',
             ],
+            
         ];
     }
 }

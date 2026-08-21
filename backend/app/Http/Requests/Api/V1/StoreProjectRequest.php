@@ -3,13 +3,12 @@
 namespace App\Http\Requests\Api\V1;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
 class StoreProjectRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true;
+        return $this->user() !== null;
     }
 
     public function rules(): array
@@ -22,7 +21,7 @@ class StoreProjectRequest extends FormRequest
             ],
 
             'slug' => [
-                'required',
+                'nullable',
                 'string',
                 'max:255',
                 'alpha_dash',
@@ -32,18 +31,20 @@ class StoreProjectRequest extends FormRequest
             'short_description' => [
                 'nullable',
                 'string',
-                'max:255',
+                'max:1000',
             ],
 
             'description' => [
                 'nullable',
                 'string',
+                'max:50000',
             ],
 
             'price' => [
                 'nullable',
                 'numeric',
                 'min:0',
+                'max:9999999999999.99',
             ],
 
             'currency' => [
@@ -54,45 +55,25 @@ class StoreProjectRequest extends FormRequest
             ],
 
             'is_for_sale' => [
-                'required',
+                'sometimes',
                 'boolean',
             ],
 
             'is_featured' => [
-                'required',
+                'sometimes',
                 'boolean',
             ],
 
             'status' => [
                 'required',
-                Rule::in([
-                    'draft',
-                    'published',
-                    'archived',
-                ]),
+                'in:draft,published,archived',
             ],
 
-            'file_path' => [
+            'file' => [
                 'nullable',
-                'string',
-                'max:255',
-            ],
-
-            'file_name' => [
-                'nullable',
-                'string',
-                'max:255',
-            ],
-
-            'file_size' => [
-                'nullable',
-                'integer',
-                'min:0',
-            ],
-
-            'published_at' => [
-                'nullable',
-                'date',
+                'file',
+                'mimes:zip',
+                'max:512000',
             ],
         ];
     }

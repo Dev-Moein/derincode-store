@@ -13,6 +13,7 @@ use App\Http\Resources\Api\V1\ProjectImageResource;
 use App\Http\Resources\Api\V1\ProjectResource;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use App\Models\ProjectImage;
 
 class ProjectController extends Controller
 {
@@ -33,12 +34,17 @@ class ProjectController extends Controller
             ])
         );
 
-        return ProjectResource::collection($projects);
+        return ProjectResource::collection(
+            $projects
+        );
     }
 
-    public function show(string $slug): JsonResponse
-    {
-        $project = $this->projectService->findBySlug($slug);
+    public function show(
+        string $slug
+    ): JsonResponse {
+        $project = $this->projectService->findBySlug(
+            $slug
+        );
 
         if (!$project) {
             return response()->json([
@@ -55,10 +61,12 @@ class ProjectController extends Controller
         ]);
     }
 
-    public function store(StoreProjectRequest $request): JsonResponse
-    {
+    public function store(
+        StoreProjectRequest $request
+    ): JsonResponse {
         $project = $this->projectService->create(
-            $request->validated()
+            $request->validated(),
+            $request->file('file')
         );
 
         $project->load('images');
@@ -74,7 +82,9 @@ class ProjectController extends Controller
         UpdateProjectRequest $request,
         string $slug
     ): JsonResponse {
-        $project = $this->projectService->findBySlug($slug);
+        $project = $this->projectService->findBySlug(
+            $slug
+        );
 
         if (!$project) {
             return response()->json([
@@ -86,7 +96,8 @@ class ProjectController extends Controller
 
         $project = $this->projectService->update(
             $project,
-            $request->validated()
+            $request->validated(),
+            $request->file('file')
         );
 
         $project->load('images');
@@ -98,9 +109,12 @@ class ProjectController extends Controller
         ]);
     }
 
-    public function destroy(string $slug): JsonResponse
-    {
-        $project = $this->projectService->findBySlug($slug);
+    public function destroy(
+        string $slug
+    ): JsonResponse {
+        $project = $this->projectService->findBySlug(
+            $slug
+        );
 
         if (!$project) {
             return response()->json([
@@ -119,41 +133,46 @@ class ProjectController extends Controller
         ]);
     }
 
-  public function storeImage(
-    StoreProjectImageRequest $request,
-    string $slug
-): JsonResponse {
-    $project = $this->projectService->findBySlug($slug);
-
-    if (!$project) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Project not found.',
-            'data' => null,
-        ], 404);
-    }
-
-    $images = [];
-
-    foreach ($request->file('images') as $index => $file) {
-        $images[] = $this->imageService->store(
-            project: $project,
-            file: $file,
-            alt: $request->input('alt'),
-            sortOrder: $index,
+    public function storeImage(
+        StoreProjectImageRequest $request,
+        string $slug
+    ): JsonResponse {
+        $project = $this->projectService->findBySlug(
+            $slug
         );
+
+        if (!$project) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Project not found.',
+                'data' => null,
+            ], 404);
+        }
+
+        $images = [];
+
+        foreach ($request->file('images') as $index => $file) {
+            $images[] = $this->imageService->store(
+                project: $project,
+                file: $file,
+                alt: $request->input('alt'),
+                sortOrder: $index,
+            );
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Project images uploaded successfully.',
+            'data' => ProjectImageResource::collection(
+                $images
+            ),
+        ], 201);
     }
 
-    return response()->json([
-        'success' => true,
-        'message' => 'Project images uploaded successfully.',
-        'data' => ProjectImageResource::collection($images),
-    ], 201);
-}
-
-    public function destroyImage(int $image): JsonResponse
-    {
-        $projectImage = \App\Models\ProjectImage::find($image);
+    public function destroyImage(
+        int $image
+    ): JsonResponse {
+        $projectImage = ProjectImage::find($image);
 
         if (!$projectImage) {
             return response()->json([
@@ -163,7 +182,9 @@ class ProjectController extends Controller
             ], 404);
         }
 
-        $this->imageService->delete($projectImage);
+        $this->imageService->delete(
+            $projectImage
+        );
 
         return response()->json([
             'success' => true,
@@ -171,37 +192,41 @@ class ProjectController extends Controller
             'data' => null,
         ]);
     }
+
     public function reorderImages(
-    ReorderProjectImagesRequest $request,
-    string $slug
-): JsonResponse {
-    $project = $this->projectService->findBySlug($slug);
+        ReorderProjectImagesRequest $request,
+        string $slug
+    ): JsonResponse {
+        $project = $this->projectService->findBySlug(
+            $slug
+        );
 
-    if (!$project) {
+        if (!$project) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Project not found.',
+                'data' => null,
+            ], 404);
+        }
+
+        $this->imageService->reorder(
+            $project,
+            $request->validated('images')
+        );
+
+        $project->load([
+            'images' => fn ($query) => $query
+                ->orderBy('sort_order')
+                ->orderBy('id'),
+        ]);
+
         return response()->json([
-            'success' => false,
-            'message' => 'Project not found.',
-            'data' => null,
-        ], 404);
+            'success' => true,
+            'message' => 'Project images reordered successfully.',
+            'data' => ProjectImageResource::collection(
+                $project->images
+            ),
+        ]);
     }
-
-    $this->imageService->reorder(
-        $project,
-        $request->validated('images')
-    );
-
-    $project->load([
-        'images' => fn ($query) => $query
-            ->orderBy('sort_order')
-            ->orderBy('id'),
-    ]);
-
-    return response()->json([
-        'success' => true,
-        'message' => 'Project images reordered successfully.',
-        'data' => ProjectImageResource::collection(
-            $project->images
-        ),
-    ]);
 }
-}
+

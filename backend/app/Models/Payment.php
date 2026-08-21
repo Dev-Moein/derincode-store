@@ -43,7 +43,7 @@ class Payment extends Model
     }
 
     public function downloads(): HasMany
-{
-    return $this->hasMany(Download::class);
-}
+    {
+        return $this->hasMany(Download::class);
+    }
 }

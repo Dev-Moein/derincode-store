@@ -76,5 +76,9 @@ return [
     'links' => [
         public_path('storage') => storage_path('app/public'),
     ],
+    'project_download_disk' => env(
+    'PROJECT_DOWNLOAD_DISK',
+    'local'
+),
 
 ];

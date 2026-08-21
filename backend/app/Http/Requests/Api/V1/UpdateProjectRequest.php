@@ -9,12 +9,12 @@ class UpdateProjectRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true;
+        return $this->user() !== null;
     }
 
     public function rules(): array
     {
-        $project = $this->route('project');
+        $slug = $this->route('slug');
 
         return [
             'title' => [
@@ -29,20 +29,21 @@ class UpdateProjectRequest extends FormRequest
                 'max:255',
                 'alpha_dash',
                 Rule::unique('projects', 'slug')
-                    ->ignore($project),
+                    ->ignore($slug, 'slug'),
             ],
 
             'short_description' => [
                 'sometimes',
                 'nullable',
                 'string',
-                'max:255',
+                'max:1000',
             ],
 
             'description' => [
                 'sometimes',
                 'nullable',
                 'string',
+                'max:50000',
             ],
 
             'price' => [
@@ -50,6 +51,7 @@ class UpdateProjectRequest extends FormRequest
                 'nullable',
                 'numeric',
                 'min:0',
+                'max:9999999999999.99',
             ],
 
             'currency' => [
@@ -78,31 +80,12 @@ class UpdateProjectRequest extends FormRequest
                 ]),
             ],
 
-            'file_path' => [
+            'file' => [
                 'sometimes',
                 'nullable',
-                'string',
-                'max:255',
-            ],
-
-            'file_name' => [
-                'sometimes',
-                'nullable',
-                'string',
-                'max:255',
-            ],
-
-            'file_size' => [
-                'sometimes',
-                'nullable',
-                'integer',
-                'min:0',
-            ],
-
-            'published_at' => [
-                'sometimes',
-                'nullable',
-                'date',
+                'file',
+                'mimes:zip',
+                'max:512000',
             ],
         ];
     }
