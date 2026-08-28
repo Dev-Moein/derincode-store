@@ -27,10 +27,23 @@ class AuthService implements AuthServiceInterface
         return DB::transaction(function () use ($data) {
             $user = $this->userRepository->create($data);
 
-            $customerRole = Role::where('slug', 'customer')
-                ->firstOrFail();
+            /*
+             * Make sure the default customer role exists.
+             *
+             * This is important for tests and fresh installations
+             * where the roles table may not have been seeded yet.
+             */
+            $customerRole = Role::firstOrCreate(
+                ['slug' => 'customer'],
+                [
+                    'name' => 'Customer',
+                    'description' => 'Default customer role.',
+                ],
+            );
 
-            $user->roles()->attach($customerRole);
+            $user->roles()->syncWithoutDetaching([
+                $customerRole->id,
+            ]);
 
             $token = $user
                 ->createToken('auth-token')
@@ -52,7 +65,7 @@ class AuthService implements AuthServiceInterface
     ): ?array {
         $user = $this->userRepository->findByEmail($email);
 
-        if (!$user || !Hash::check($password, $user->password)) {
+        if (! $user || ! Hash::check($password, $user->password)) {
             return null;
         }
 
@@ -81,7 +94,7 @@ class AuthService implements AuthServiceInterface
     {
         $user = $this->userRepository->findByEmail($email);
 
-        if (!$user) {
+        if (! $user) {
             return;
         }
 
@@ -119,13 +132,13 @@ class AuthService implements AuthServiceInterface
             $otp,
             $password
         ) {
-            if (!$this->otpService->verify($email, $otp)) {
+            if (! $this->otpService->verify($email, $otp)) {
                 return false;
             }
 
             $user = $this->userRepository->findByEmail($email);
 
-            if (!$user) {
+            if (! $user) {
                 return false;
             }
 

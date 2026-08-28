@@ -56,7 +56,7 @@ class PaymentController extends Controller
             ),
         );
 
-        if (!$result['success']) {
+        if (! $result['success']) {
             return response()->json([
                 'success' => false,
                 'message' => 'Unable to initiate payment.',
@@ -90,7 +90,7 @@ class PaymentController extends Controller
     ): JsonResponse {
         $paymentModel = $this->paymentService->findById($payment);
 
-        if (!$paymentModel) {
+        if (! $paymentModel) {
             return response()->json([
                 'success' => false,
                 'message' => 'Payment not found.',
@@ -123,7 +123,7 @@ class PaymentController extends Controller
         $authority = $request->query('Authority');
         $status = $request->query('Status');
 
-        if (!$authority) {
+        if (! $authority) {
             return response()->json([
                 'success' => false,
                 'message' => 'Payment authority is missing.',
@@ -162,7 +162,7 @@ class PaymentController extends Controller
             (string) $authority
         );
 
-        if (!$result['success']) {
+        if (! $result['success']) {
             $paymentModel = $this->paymentService->markAsFailed(
                 $paymentModel
             );
@@ -212,7 +212,7 @@ class PaymentController extends Controller
         $payment = $this->paymentService->findById($id);
 
         if (
-            !$payment ||
+            ! $payment ||
             $payment->user_id !== $request->user()->id
         ) {
             return response()->json([

@@ -17,7 +17,7 @@ class ProjectRepository implements ProjectRepositoryInterface
                     ->orderBy('id'),
             ]);
 
-        if (!empty($filters['search'])) {
+        if (! empty($filters['search'])) {
             $search = $filters['search'];
 
             $query->where(function ($query) use ($search) {
@@ -31,7 +31,7 @@ class ProjectRepository implements ProjectRepositoryInterface
             });
         }
 
-        if (!empty($filters['status'])) {
+        if (! empty($filters['status'])) {
             $query->where(
                 'status',
                 $filters['status']

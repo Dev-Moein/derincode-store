@@ -43,7 +43,7 @@ class PaymentRepository implements PaymentRepositoryInterface
             ->with('project')
             ->where('user_id', $userId)
             ->when(
-                !empty($filters['status']),
+                ! empty($filters['status']),
                 fn ($query) => $query->where(
                     'status',
                     $filters['status']

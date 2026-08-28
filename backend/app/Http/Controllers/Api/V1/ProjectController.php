@@ -11,9 +11,9 @@ use App\Http\Requests\Api\V1\StoreProjectRequest;
 use App\Http\Requests\Api\V1\UpdateProjectRequest;
 use App\Http\Resources\Api\V1\ProjectImageResource;
 use App\Http\Resources\Api\V1\ProjectResource;
+use App\Models\ProjectImage;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use App\Models\ProjectImage;
 
 class ProjectController extends Controller
 {
@@ -46,7 +46,7 @@ class ProjectController extends Controller
             $slug
         );
 
-        if (!$project) {
+        if (! $project) {
             return response()->json([
                 'success' => false,
                 'message' => 'Project not found.',
@@ -86,7 +86,7 @@ class ProjectController extends Controller
             $slug
         );
 
-        if (!$project) {
+        if (! $project) {
             return response()->json([
                 'success' => false,
                 'message' => 'Project not found.',
@@ -116,7 +116,7 @@ class ProjectController extends Controller
             $slug
         );
 
-        if (!$project) {
+        if (! $project) {
             return response()->json([
                 'success' => false,
                 'message' => 'Project not found.',
@@ -141,7 +141,7 @@ class ProjectController extends Controller
             $slug
         );
 
-        if (!$project) {
+        if (! $project) {
             return response()->json([
                 'success' => false,
                 'message' => 'Project not found.',
@@ -174,7 +174,7 @@ class ProjectController extends Controller
     ): JsonResponse {
         $projectImage = ProjectImage::find($image);
 
-        if (!$projectImage) {
+        if (! $projectImage) {
             return response()->json([
                 'success' => false,
                 'message' => 'Project image not found.',
@@ -201,7 +201,7 @@ class ProjectController extends Controller
             $slug
         );
 
-        if (!$project) {
+        if (! $project) {
             return response()->json([
                 'success' => false,
                 'message' => 'Project not found.',
@@ -229,4 +229,3 @@ class ProjectController extends Controller
         ]);
     }
 }
-

@@ -4,6 +4,7 @@ namespace App\Contracts\Services;
 
 use App\Models\Download;
 use App\Models\User;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 interface DownloadServiceInterface
@@ -23,4 +24,9 @@ interface DownloadServiceInterface
         int $userId,
         int $projectId
     ): bool;
+
+    public function paginateForUser(
+        int $userId,
+        array $filters = []
+    ): LengthAwarePaginator;
 }

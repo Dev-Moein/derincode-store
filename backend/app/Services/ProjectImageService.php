@@ -53,7 +53,7 @@ class ProjectImageService implements ProjectImageServiceInterface
                     ->whereKey($imageData['id'])
                     ->first();
 
-                if (!$image) {
+                if (! $image) {
                     continue;
                 }
 

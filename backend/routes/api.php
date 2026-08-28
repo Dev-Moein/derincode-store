@@ -1,8 +1,12 @@
 <?php
 
+use App\Http\Controllers\Api\V1\AdminUserController;
 use App\Http\Controllers\Api\V1\AuthController;
+use App\Http\Controllers\Api\V1\ContactController;
+use App\Http\Controllers\Api\V1\DashboardController;
 use App\Http\Controllers\Api\V1\DownloadController;
 use App\Http\Controllers\Api\V1\PaymentController;
+use App\Http\Controllers\Api\V1\ProfileController;
 use App\Http\Controllers\Api\V1\ProjectController;
 use App\Http\Controllers\Api\V1\ProjectRequestController;
 use Illuminate\Support\Facades\Route;
@@ -24,6 +28,21 @@ Route::prefix('v1')->group(function () {
             ],
         ]);
     });
+/*
+|--------------------------------------------------------------------------
+| Contact
+|--------------------------------------------------------------------------
+|
+| Public endpoint for visitors to send a contact message.
+|
+*/
+
+Route::post('/contact', [
+    ContactController::class,
+    'store',
+]);
+
+
 
     /*
     |--------------------------------------------------------------------------
@@ -32,6 +51,12 @@ Route::prefix('v1')->group(function () {
     */
 
     Route::prefix('auth')->group(function () {
+
+        /*
+        |----------------------------------------------------------------------
+        | Guest
+        |----------------------------------------------------------------------
+        */
 
         Route::post('/register', [
             AuthController::class,
@@ -58,6 +83,12 @@ Route::prefix('v1')->group(function () {
             'resetPassword',
         ]);
 
+        /*
+        |----------------------------------------------------------------------
+        | Authenticated User
+        |----------------------------------------------------------------------
+        */
+
         Route::middleware('auth:sanctum')->group(function () {
 
             Route::get('/me', [
@@ -81,7 +112,9 @@ Route::prefix('v1')->group(function () {
     Route::prefix('projects')->group(function () {
 
         /*
+        |----------------------------------------------------------------------
         | Public
+        |----------------------------------------------------------------------
         */
 
         Route::get('/', [
@@ -95,12 +128,12 @@ Route::prefix('v1')->group(function () {
         ]);
 
         /*
-        | Admin
+        |----------------------------------------------------------------------
+        | Project Management
+        |----------------------------------------------------------------------
         */
 
-        Route::middleware([
-            'auth:sanctum',
-        ])->group(function () {
+        Route::middleware('auth:sanctum')->group(function () {
 
             Route::post('/', [
                 ProjectController::class,
@@ -116,6 +149,12 @@ Route::prefix('v1')->group(function () {
                 ProjectController::class,
                 'destroy',
             ])->middleware('permission:projects.delete');
+
+            /*
+            |------------------------------------------------------------------
+            | Project Images
+            |------------------------------------------------------------------
+            */
 
             Route::post('/{slug}/images', [
                 ProjectController::class,
@@ -140,52 +179,72 @@ Route::prefix('v1')->group(function () {
     |--------------------------------------------------------------------------
     */
 
-    Route::prefix('project-requests')->group(function () {
+    Route::prefix('project-requests')
+        ->middleware('auth:sanctum')
+        ->group(function () {
 
-        /*
-        | Customer
-        */
+            /*
+            |------------------------------------------------------------------
+            | Customer
+            |------------------------------------------------------------------
+            */
 
-        Route::middleware([
-            'auth:sanctum',
-        ])->group(function () {
+            /*
+            | User's own project requests.
+            */
 
             Route::get('/', [
                 ProjectRequestController::class,
                 'index',
             ])->middleware('permission:project-requests.view');
 
+            /*
+            | Create a new project request.
+            */
+
             Route::post('/', [
                 ProjectRequestController::class,
                 'store',
-            ])->middleware('permission:project-requests.view');
+            ])->middleware('permission:project-requests.create');
+
+            /*
+            |------------------------------------------------------------------
+            | Admin
+            |------------------------------------------------------------------
+            */
+
+            Route::prefix('admin')
+                ->middleware('permission:project-requests.manage')
+                ->group(function () {
+
+                    /*
+                    | List all project requests.
+                    */
+
+                    Route::get('/', [
+                        ProjectRequestController::class,
+                        'adminIndex',
+                    ]);
+
+                    /*
+                    | View a single project request.
+                    */
+
+                    Route::get('/{id}', [
+                        ProjectRequestController::class,
+                        'show',
+                    ]);
+
+                    /*
+                    | Update project request status.
+                    */
+
+                    Route::put('/{id}/status', [
+                        ProjectRequestController::class,
+                        'updateStatus',
+                    ]);
+                });
         });
-
-        /*
-        | Admin
-        */
-
-        Route::middleware([
-            'auth:sanctum',
-            'permission:project-requests.manage',
-        ])->group(function () {
-
-            Route::get('/admin', [
-                ProjectRequestController::class,
-                'adminIndex',
-            ]);
-
-            Route::get('/admin/{id}', [
-                ProjectRequestController::class,
-                'show',
-            ]);
-
-            Route::put('/admin/{id}/status', [
-                ProjectRequestController::class,
-                'updateStatus',
-            ]);
-        });
-    });
 
     /*
     |--------------------------------------------------------------------------
@@ -197,15 +256,29 @@ Route::prefix('v1')->group(function () {
         ->middleware('auth:sanctum')
         ->group(function () {
 
+            /*
+            | User's payment history.
+            */
+
             Route::get('/', [
                 PaymentController::class,
                 'index',
             ]);
 
+            /*
+            | Initiate a payment.
+            */
+
             Route::post('/', [
                 PaymentController::class,
                 'store',
             ]);
+
+            /*
+            | View a specific payment.
+            |
+            | Ownership is validated inside the application layer.
+            */
 
             Route::get('/{id}', [
                 PaymentController::class,
@@ -218,7 +291,8 @@ Route::prefix('v1')->group(function () {
     | Payment Callback
     |--------------------------------------------------------------------------
     |
-    | Public route because Zarinpal redirects the user here.
+    | This route must remain public because the payment gateway redirects
+    | the user back to this endpoint after the payment process.
     |
     */
 
@@ -231,24 +305,110 @@ Route::prefix('v1')->group(function () {
     |--------------------------------------------------------------------------
     | Downloads
     |--------------------------------------------------------------------------
-    |
-    | Authenticated customers can download projects they have successfully
-    | purchased.
-    |
     */
 
     Route::prefix('downloads')
         ->middleware('auth:sanctum')
         ->group(function () {
 
+            /*
+            | Download a successfully purchased project.
+            |
+            | Purchase ownership is validated inside DownloadService.
+            */
+
             Route::get('/projects/{project}', [
                 DownloadController::class,
                 'download',
             ])->name('downloads.project');
+
+            /*
+            | Authenticated user's download history.
+            */
 
             Route::get('/', [
                 DownloadController::class,
                 'index',
             ])->name('downloads.index');
         });
+    /*
+    |--------------------------------------------------------------------------
+    | Profile
+    |--------------------------------------------------------------------------
+    */
+
+    Route::prefix('profile')
+        ->middleware('auth:sanctum')
+        ->group(function () {
+
+            /*
+            | Get authenticated user's profile.
+            */
+
+            Route::get('/', [
+                ProfileController::class,
+                'show',
+            ]);
+
+            /*
+            | Update authenticated user's profile.
+            */
+
+            Route::put('/', [
+                ProfileController::class,
+                'update',
+            ]);
+
+            /*
+            | Change authenticated user's password.
+            */
+
+            Route::put('/password', [
+                ProfileController::class,
+                'changePassword',
+            ]);
+        });
+
+    /*
+    |--------------------------------------------------------------------------
+    | Dashboard
+    |--------------------------------------------------------------------------
+    */
+
+    Route::middleware('auth:sanctum')->group(function () {
+
+        Route::get('/dashboard', [
+            DashboardController::class,
+            'index',
+        ]);
+    });
+/*
+|--------------------------------------------------------------------------
+| Admin Users
+|--------------------------------------------------------------------------
+*/
+
+Route::prefix('admin/users')
+    ->middleware([
+        'auth:sanctum',
+        'permission:users.view',
+    ])
+    ->group(function () {
+
+        Route::get('/', [
+            AdminUserController::class,
+            'index',
+        ]);
+
+        Route::get('/{id}', [
+            AdminUserController::class,
+            'show',
+        ]);
+
+        Route::put('/{id}', [
+            AdminUserController::class,
+            'update',
+        ])->middleware('permission:users.update');
+    });
+
 });

@@ -31,4 +31,3 @@ interface ProjectServiceInterface
         Project $project
     ): bool;
 }
-

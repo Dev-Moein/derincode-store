@@ -10,25 +10,19 @@ class ApiResponse
         mixed $data = null,
         string $message = 'Success.',
         int $status = 200,
-        array $meta = [],
     ): JsonResponse {
-        $response = [
+        return response()->json([
             'success' => true,
             'message' => $message,
+            'errors' => null,
             'data' => $data,
-        ];
-
-        if ($meta !== []) {
-            $response['meta'] = $meta;
-        }
-
-        return response()->json($response, $status);
+        ], $status);
     }
 
     public static function error(
-        string $message,
-        int $status,
+        string $message = 'Error.',
         mixed $errors = null,
+        int $status = 400,
         mixed $data = null,
     ): JsonResponse {
         return response()->json([

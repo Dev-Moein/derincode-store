@@ -14,8 +14,7 @@ class SendPasswordResetOtpJob implements ShouldQueue
     public function __construct(
         public readonly string $email,
         public readonly string $otp,
-    ) {
-    }
+    ) {}
 
     public function handle(): void
     {

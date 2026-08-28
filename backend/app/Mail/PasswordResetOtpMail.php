@@ -13,8 +13,7 @@ class PasswordResetOtpMail extends Mailable
 
     public function __construct(
         public readonly string $otp,
-    ) {
-    }
+    ) {}
 
     public function build(): static
     {

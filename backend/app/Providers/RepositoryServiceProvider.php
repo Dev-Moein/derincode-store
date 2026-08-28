@@ -3,27 +3,37 @@
 namespace App\Providers;
 
 use App\Contracts\Notifications\OtpNotificationInterface;
+use App\Contracts\Repositories\ContactRepositoryInterface;
+use App\Contracts\Repositories\DownloadRepositoryInterface;
 use App\Contracts\Repositories\PaymentRepositoryInterface;
 use App\Contracts\Repositories\ProjectImageRepositoryInterface;
 use App\Contracts\Repositories\ProjectRepositoryInterface;
 use App\Contracts\Repositories\ProjectRequestRepositoryInterface;
 use App\Contracts\Repositories\UserRepositoryInterface;
 use App\Contracts\Services\AuthServiceInterface;
+use App\Contracts\Services\ContactServiceInterface;
+use App\Contracts\Services\DownloadServiceInterface;
 use App\Contracts\Services\OtpServiceInterface;
 use App\Contracts\Services\PaymentGatewayInterface;
 use App\Contracts\Services\PaymentServiceInterface;
+use App\Contracts\Services\ProjectFileServiceInterface;
 use App\Contracts\Services\ProjectImageServiceInterface;
 use App\Contracts\Services\ProjectRequestServiceInterface;
 use App\Contracts\Services\ProjectServiceInterface;
 use App\Notifications\Otp\EmailOtpNotification;
+use App\Repositories\ContactRepository;
+use App\Repositories\DownloadRepository;
 use App\Repositories\PaymentRepository;
 use App\Repositories\ProjectImageRepository;
 use App\Repositories\ProjectRepository;
 use App\Repositories\ProjectRequestRepository;
 use App\Repositories\UserRepository;
 use App\Services\AuthService;
+use App\Services\ContactService;
+use App\Services\DownloadService;
 use App\Services\OtpService;
 use App\Services\PaymentService;
+use App\Services\ProjectFileService;
 use App\Services\ProjectImageService;
 use App\Services\ProjectRequestService;
 use App\Services\ProjectService;
@@ -89,47 +99,63 @@ class RepositoryServiceProvider extends ServiceProvider
         );
 
         $this->app->bind(
-    ProjectImageRepositoryInterface::class,
-    ProjectImageRepository::class
-);
+            ProjectImageRepositoryInterface::class,
+            ProjectImageRepository::class
+        );
 
-$this->app->bind(
-    ProjectImageServiceInterface::class,
-    ProjectImageService::class
-);
+        $this->app->bind(
+            ProjectImageServiceInterface::class,
+            ProjectImageService::class
+        );
 
+        $this->app->bind(
+            ProjectRequestRepositoryInterface::class,
+            ProjectRequestRepository::class
+        );
+        $this->app->bind(
+            ProjectRequestServiceInterface::class,
+            ProjectRequestService::class
+        );
 
-$this->app->bind(
-    ProjectRequestRepositoryInterface::class,
-    ProjectRequestRepository::class
-);
-$this->app->bind(
-    ProjectRequestServiceInterface::class,
-    ProjectRequestService::class
-);
+        $this->app->bind(
+            PaymentRepositoryInterface::class,
+            PaymentRepository::class
+        );
 
-$this->app->bind(
-    PaymentRepositoryInterface::class,
-    PaymentRepository::class
-);
+        $this->app->bind(
+            PaymentServiceInterface::class,
+            PaymentService::class
+        );
 
-$this->app->bind(
-    PaymentServiceInterface::class,
-    PaymentService::class
-);
+        $this->app->bind(
+            PaymentGatewayInterface::class,
+            ZarinpalService::class
+        );
+        $this->app->bind(
+            ProjectFileServiceInterface::class,
+            ProjectFileService::class,
+        );
+        $this->app->bind(
+            DownloadServiceInterface::class,
+            DownloadService::class,
+        );
+        $this->app->bind(
+            DownloadRepositoryInterface::class,
+            DownloadRepository::class
+        );
 
-$this->app->bind(
-    PaymentGatewayInterface::class,
-    ZarinpalService::class
-);
-$this->app->bind(
-    \App\Contracts\Services\ProjectFileServiceInterface::class,
-    \App\Services\ProjectFileService::class,
-);
-$this->app->bind(
-    \App\Contracts\Services\DownloadServiceInterface::class,
-    \App\Services\DownloadService::class,
-);
+        $this->app->bind(
+            DownloadServiceInterface::class,
+            DownloadService::class
+        );
+        $this->app->bind(
+         ContactRepositoryInterface::class,
+          ContactRepository::class,
+           );
+         $this->app->bind(
+         ContactServiceInterface::class,
+          ContactService::class,
+          );
     }
 
     /**
@@ -148,7 +174,7 @@ $this->app->bind(
                 ->by(
                     strtolower(
                         $request->input('email', '')
-                    ) . '|' . $request->ip()
+                    ).'|'.$request->ip()
                 );
         });
 
@@ -163,7 +189,7 @@ $this->app->bind(
                 ->by(
                     strtolower(
                         $request->input('email', '')
-                    ) . '|' . $request->ip()
+                    ).'|'.$request->ip()
                 );
         });
 
@@ -178,7 +204,7 @@ $this->app->bind(
                 ->by(
                     strtolower(
                         $request->input('email', '')
-                    ) . '|' . $request->ip()
+                    ).'|'.$request->ip()
                 );
         });
     }

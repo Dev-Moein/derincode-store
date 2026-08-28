@@ -52,7 +52,7 @@ class AuthController extends Controller
             $request->string('password')->toString(),
         );
 
-        if (!$result) {
+        if (! $result) {
             return ApiResponse::error(
                 message: 'Invalid credentials.',
                 status: 401,
@@ -126,7 +126,7 @@ class AuthController extends Controller
             $request->string('otp')->toString(),
         );
 
-        if (!$isValid) {
+        if (! $isValid) {
             return ApiResponse::error(
                 message: 'Invalid or expired OTP.',
                 status: 422,
@@ -150,7 +150,7 @@ class AuthController extends Controller
             $request->string('password')->toString(),
         );
 
-        if (!$success) {
+        if (! $success) {
             return ApiResponse::error(
                 message: 'Invalid or expired OTP.',
                 status: 422,

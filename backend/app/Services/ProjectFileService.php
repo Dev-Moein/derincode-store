@@ -18,7 +18,7 @@ class ProjectFileService implements ProjectFileServiceInterface
         Project $project,
         UploadedFile $file
     ): Project {
-        if (!$file->isValid()) {
+        if (! $file->isValid()) {
             throw new RuntimeException(
                 'The uploaded project file is invalid.'
             );
@@ -46,7 +46,7 @@ class ProjectFileService implements ProjectFileServiceInterface
             self::DISK
         );
 
-        if (!$path) {
+        if (! $path) {
             throw new RuntimeException(
                 'Unable to store project file.'
             );
@@ -94,7 +94,7 @@ class ProjectFileService implements ProjectFileServiceInterface
     public function exists(
         Project $project
     ): bool {
-        if (!$project->file_path) {
+        if (! $project->file_path) {
             return false;
         }
 
@@ -105,11 +105,11 @@ class ProjectFileService implements ProjectFileServiceInterface
     public function getPath(
         Project $project
     ): ?string {
-        if (!$project->file_path) {
+        if (! $project->file_path) {
             return null;
         }
 
-        if (!$this->exists($project)) {
+        if (! $this->exists($project)) {
             return null;
         }
 
@@ -120,7 +120,7 @@ class ProjectFileService implements ProjectFileServiceInterface
     private function deleteFile(
         Project $project
     ): bool {
-        if (!$project->file_path) {
+        if (! $project->file_path) {
             return true;
         }
 

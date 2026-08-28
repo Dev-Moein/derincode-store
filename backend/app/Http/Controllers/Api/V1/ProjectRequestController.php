@@ -76,7 +76,7 @@ class ProjectRequestController extends Controller
     {
         $projectRequest = $this->projectRequestService->findById($id);
 
-        if (!$projectRequest) {
+        if (! $projectRequest) {
             return response()->json([
                 'success' => false,
                 'message' => 'Project request not found.',
@@ -100,7 +100,7 @@ class ProjectRequestController extends Controller
     ): JsonResponse {
         $projectRequest = $this->projectRequestService->findById($id);
 
-        if (!$projectRequest) {
+        if (! $projectRequest) {
             return response()->json([
                 'success' => false,
                 'message' => 'Project request not found.',
@@ -121,4 +121,3 @@ class ProjectRequestController extends Controller
         ]);
     }
 }
-

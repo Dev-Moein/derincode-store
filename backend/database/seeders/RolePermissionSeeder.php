@@ -11,6 +11,12 @@ class RolePermissionSeeder extends Seeder
     public function run(): void
     {
         $permissions = [
+            /*
+            |--------------------------------------------------------------------------
+            | Projects
+            |--------------------------------------------------------------------------
+            */
+
             [
                 'name' => 'View Projects',
                 'slug' => 'projects.view',
@@ -27,6 +33,13 @@ class RolePermissionSeeder extends Seeder
                 'name' => 'Delete Projects',
                 'slug' => 'projects.delete',
             ],
+
+            /*
+            |--------------------------------------------------------------------------
+            | Users
+            |--------------------------------------------------------------------------
+            */
+
             [
                 'name' => 'View Users',
                 'slug' => 'users.view',
@@ -43,25 +56,54 @@ class RolePermissionSeeder extends Seeder
                 'name' => 'Delete Users',
                 'slug' => 'users.delete',
             ],
+
+            /*
+            |--------------------------------------------------------------------------
+            | Project Requests
+            |--------------------------------------------------------------------------
+            */
+
             [
-                'name' => 'View Project Requests',
+                'name' => 'Create Project Requests',
+                'slug' => 'project-requests.create',
+            ],
+            [
+                'name' => 'View Own Project Requests',
                 'slug' => 'project-requests.view',
             ],
             [
                 'name' => 'Manage Project Requests',
                 'slug' => 'project-requests.manage',
             ],
+                [
+    'name' => 'View Users',
+    'slug' => 'users.view',
+],
+[
+    'name' => 'Update Users',
+    'slug' => 'users.update',
+],
         ];
 
         foreach ($permissions as $permission) {
             Permission::updateOrCreate(
-                ['slug' => $permission['slug']],
+                [
+                    'slug' => $permission['slug'],
+                ],
                 $permission
             );
         }
 
+        /*
+        |--------------------------------------------------------------------------
+        | Roles
+        |--------------------------------------------------------------------------
+        */
+
         $customer = Role::updateOrCreate(
-            ['slug' => 'customer'],
+            [
+                'slug' => 'customer',
+            ],
             [
                 'name' => 'Customer',
                 'description' => 'Default customer role.',
@@ -69,26 +111,51 @@ class RolePermissionSeeder extends Seeder
         );
 
         $admin = Role::updateOrCreate(
-            ['slug' => 'admin'],
+            [
+                'slug' => 'admin',
+            ],
             [
                 'name' => 'Admin',
                 'description' => 'Administrator role.',
             ]
         );
 
-        $customerPermissions = Permission::whereIn('slug', [
-            'projects.view',
-            'project-requests.view',
-        ])->get();
+        /*
+        |--------------------------------------------------------------------------
+        | Customer Permissions
+        |--------------------------------------------------------------------------
+        |
+        | Customer can:
+        | - View public projects
+        | - Create project requests
+        | - View their own project requests
+        |
+        */
 
-        $adminPermissions = Permission::all();
+        $customerPermissions = Permission::query()
+            ->whereIn('slug', [
+                'projects.view',
+                'project-requests.create',
+                'project-requests.view',
+            ])
+            ->pluck('id');
 
         $customer->permissions()->sync(
-            $customerPermissions->pluck('id')
+            $customerPermissions
         );
 
+        /*
+        |--------------------------------------------------------------------------
+        | Admin Permissions
+        |--------------------------------------------------------------------------
+        */
+
+        $adminPermissions = Permission::query()
+            ->pluck('id');
+
         $admin->permissions()->sync(
-            $adminPermissions->pluck('id')
+            $adminPermissions
         );
     }
+
 }

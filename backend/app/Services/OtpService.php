@@ -31,7 +31,7 @@ class OtpService implements OtpServiceInterface
             $this->key($email)
         );
 
-        if (!$hashedOtp) {
+        if (! $hashedOtp) {
             return false;
         }
 
@@ -50,7 +50,7 @@ class OtpService implements OtpServiceInterface
 
     private function key(string $email): string
     {
-        return 'password-reset-otp:' . strtolower(
+        return 'password-reset-otp:'.strtolower(
             trim($email)
         );
     }

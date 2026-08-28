@@ -37,8 +37,8 @@ class ZarinpalService implements PaymentGatewayInterface
         $data = $response->json();
 
         if (
-            !$response->successful() ||
-            !isset($data['data']['code']) ||
+            ! $response->successful() ||
+            ! isset($data['data']['code']) ||
             $data['data']['code'] !== 100
         ) {
             return [
@@ -52,9 +52,8 @@ class ZarinpalService implements PaymentGatewayInterface
         return [
             'success' => true,
             'authority' => $authority,
-            'payment_url' =>
-                'https://sandbox.zarinpal.com/pg/StartPay/'
-                . $authority,
+            'payment_url' => 'https://sandbox.zarinpal.com/pg/StartPay/'
+                .$authority,
         ];
     }
 
@@ -74,8 +73,8 @@ class ZarinpalService implements PaymentGatewayInterface
         $data = $response->json();
 
         if (
-            !$response->successful() ||
-            !isset($data['data']['code'])
+            ! $response->successful() ||
+            ! isset($data['data']['code'])
         ) {
             return [
                 'success' => false,

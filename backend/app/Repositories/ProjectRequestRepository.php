@@ -16,7 +16,7 @@ class ProjectRequestRepository implements ProjectRequestRepositoryInterface
             ->with('user')
             ->where('user_id', $userId);
 
-        if (!empty($filters['status'])) {
+        if (! empty($filters['status'])) {
             $query->where('status', $filters['status']);
         }
 
@@ -31,7 +31,7 @@ class ProjectRequestRepository implements ProjectRequestRepositoryInterface
         $query = ProjectRequest::query()
             ->with('user');
 
-        if (!empty($filters['search'])) {
+        if (! empty($filters['search'])) {
             $search = $filters['search'];
 
             $query->where(function ($query) use ($search) {
@@ -46,7 +46,7 @@ class ProjectRequestRepository implements ProjectRequestRepositoryInterface
             });
         }
 
-        if (!empty($filters['status'])) {
+        if (! empty($filters['status'])) {
             $query->where('status', $filters['status']);
         }
 

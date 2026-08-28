@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class ProjectRequest extends Model
 {
     use HasFactory;
-         
+
     protected $fillable = [
         'user_id',
         'title',

@@ -33,7 +33,7 @@ class DownloadRepository implements DownloadRepositoryInterface
             ])
             ->latest('downloaded_at');
 
-        if (!empty($filters['project_id'])) {
+        if (! empty($filters['project_id'])) {
             $query->where(
                 'project_id',
                 $filters['project_id']

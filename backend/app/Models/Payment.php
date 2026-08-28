@@ -18,6 +18,7 @@ class Payment extends Model
         'amount',
         'currency',
         'gateway',
+        'authority',
         'transaction_id',
         'status',
         'paid_at',

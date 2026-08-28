@@ -33,7 +33,7 @@ class PaymentService implements PaymentServiceInterface
             $project = Project::findOrFail($projectId);
 
             if (
-                !$project->is_for_sale ||
+                ! $project->is_for_sale ||
                 $project->status->value !== 'published'
             ) {
                 throw ValidationException::withMessages([
@@ -97,7 +97,7 @@ class PaymentService implements PaymentServiceInterface
             $callbackUrl
         );
 
-        if (!$result['success']) {
+        if (! $result['success']) {
             $this->markAsFailed($payment);
 
             return $result;
