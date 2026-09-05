@@ -43,4 +43,16 @@ interface PaymentServiceInterface
     public function markAsCancelled(
         Payment $payment
     ): Payment;
+    public function paginateSuccessfulForUser(
+    int $userId,
+    int $perPage = 15
+): LengthAwarePaginator;
+public function findByIdForUser(
+    int $id,
+    int $userId
+): ?Payment;
+public function findSuccessfulPayment(
+    int $userId,
+    int $projectId
+): ?Payment;
 }

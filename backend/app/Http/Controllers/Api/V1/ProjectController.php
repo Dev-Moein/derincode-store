@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\Contracts\Services\PaymentServiceInterface;
 use App\Contracts\Services\ProjectImageServiceInterface;
 use App\Contracts\Services\ProjectServiceInterface;
 use App\Http\Controllers\Controller;
@@ -14,12 +15,14 @@ use App\Http\Resources\Api\V1\ProjectResource;
 use App\Models\ProjectImage;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class ProjectController extends Controller
 {
     public function __construct(
         private readonly ProjectServiceInterface $projectService,
         private readonly ProjectImageServiceInterface $imageService,
+        private readonly PaymentServiceInterface $paymentService,
     ) {}
 
     public function index(Request $request)
@@ -34,32 +37,44 @@ class ProjectController extends Controller
             ])
         );
 
-        return ProjectResource::collection(
-            $projects
-        );
+        return ProjectResource::collection($projects);
     }
 
-    public function show(
-        string $slug
-    ): JsonResponse {
-        $project = $this->projectService->findBySlug(
-            $slug
-        );
+ public function show(
+    string $slug
+): JsonResponse {
+    $project = $this->projectService->findBySlug($slug);
 
-        if (! $project) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Project not found.',
-                'data' => null,
-            ], 404);
-        }
-
+    if (! $project) {
         return response()->json([
-            'success' => true,
-            'message' => 'Project retrieved successfully.',
-            'data' => new ProjectResource($project),
-        ]);
+            'success' => false,
+            'message' => 'Project not found.',
+            'data' => null,
+        ], 404);
     }
+
+    $project->load('images');
+
+    $user = Auth::guard('sanctum')->user();
+
+    $isPurchased = false;
+
+    if ($user) {
+        $isPurchased = $this->paymentService->hasPurchasedProject(
+            $user->id,
+            $project->id
+        );
+    }
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Project retrieved successfully.',
+        'data' => [
+            ...new ProjectResource($project)->resolve(request()),
+            'is_purchased' => $isPurchased,
+        ],
+    ]);
+}
 
     public function store(
         StoreProjectRequest $request
@@ -229,3 +244,4 @@ class ProjectController extends Controller
         ]);
     }
 }
+

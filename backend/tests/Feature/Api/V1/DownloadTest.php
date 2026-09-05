@@ -10,6 +10,8 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
+use App\Contracts\Services\PaymentGatewayInterface;
+use Mockery;
 
 class DownloadTest extends TestCase
 {
@@ -18,6 +20,15 @@ class DownloadTest extends TestCase
     /**
      * Create a project that has a downloadable file.
      */
+    protected function setUp(): void
+{
+    parent::setUp();
+
+    $this->app->instance(
+        PaymentGatewayInterface::class,
+        Mockery::mock(PaymentGatewayInterface::class)
+    );
+}
     private function downloadableProject(): Project
     {
         return Project::factory()->create([

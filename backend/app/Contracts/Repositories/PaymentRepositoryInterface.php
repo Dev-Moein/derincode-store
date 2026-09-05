@@ -25,4 +25,12 @@ interface PaymentRepositoryInterface
         Payment $payment,
         array $data
     ): Payment;
+    public function paginateSuccessfulForUser(
+    int $userId,
+    int $perPage = 15
+): LengthAwarePaginator;
+public function findByIdForUser(
+    int $id,
+    int $userId
+): ?Payment;
 }

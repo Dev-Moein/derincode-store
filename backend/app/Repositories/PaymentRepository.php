@@ -63,4 +63,33 @@ class PaymentRepository implements PaymentRepositoryInterface
 
         return $payment->refresh();
     }
+   public function paginateSuccessfulForUser(
+    int $userId,
+    int $perPage = 15
+): LengthAwarePaginator {
+    return Payment::query()
+        ->with([
+            'project.images',
+        ])
+        ->where('user_id', $userId)
+        ->where(
+            'status',
+            PaymentStatus::SUCCESSFUL
+        )
+        ->latest('paid_at')
+        ->paginate($perPage);
 }
+public function findByIdForUser(
+    int $id,
+    int $userId
+): ?Payment {
+    return Payment::query()
+        ->with([
+            'project',
+        ])
+        ->where('id', $id)
+        ->where('user_id', $userId)
+        ->first();
+}
+}
+

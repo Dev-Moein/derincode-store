@@ -1,0 +1,50 @@
+:root {
+    --bg-primary: #050607;
+    --bg-secondary: #080a0c;
+    --bg-tertiary: #0c0f12;
+
+    --bg-card: rgba(255, 255, 255, 0.025);
+    --bg-card-hover: rgba(255, 107, 0, 0.04);
+
+    --border: rgba(255, 255, 255, 0.08);
+    --border-strong: rgba(255, 255, 255, 0.13);
+    --border-orange: rgba(255, 107, 0, 0.34);
+
+    --text-primary: #f5f7f8;
+    --text-secondary: #a8adb3;
+    --text-muted: #6f767d;
+
+    --orange: #ff6b00;
+    --orange-light: #ff8a2b;
+    --orange-soft: rgba(255, 107, 0, 0.1);
+    --orange-glow: rgba(255, 107, 0, 0.2);
+
+    --success: #37d67a;
+    --danger: #ff5c5c;
+
+    --container: 1180px;
+
+    --radius-sm: 8px;
+    --radius-md: 14px;
+    --radius-lg: 20px;
+    --radius-xl: 28px;
+
+    --shadow-sm:
+        0 8px 24px rgba(0, 0, 0, 0.22);
+
+    --shadow-lg:
+        0 24px 80px rgba(0, 0, 0, 0.35);
+
+    --transition: 220ms ease;
+
+    --font-sans:
+        Tahoma,
+        Arial,
+        "Segoe UI",
+        sans-serif;
+
+    --font-mono:
+        "Cascadia Code",
+        Consolas,
+        monospace;
+}

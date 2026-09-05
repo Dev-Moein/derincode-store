@@ -117,10 +117,33 @@ return [
     | Supported drivers: "file", "cache", "array"
     |
     */
+'zarinpal' => [
+    'merchant_id' => env(
+        'ZARINPAL_MERCHANT_ID'
+    ),
 
+    'request_url' => env(
+        'ZARINPAL_REQUEST_URL',
+        'https://sandbox.zarinpal.com/pg/v4/payment/request.json'
+    ),
+
+    'verify_url' => env(
+        'ZARINPAL_VERIFY_URL',
+        'https://sandbox.zarinpal.com/pg/v4/payment/verify.json'
+    ),
+
+    'payment_url' => env(
+        'ZARINPAL_PAYMENT_URL',
+        'https://sandbox.zarinpal.com/pg/StartPay/'
+    ),
+],
     'maintenance' => [
         'driver' => env('APP_MAINTENANCE_DRIVER', 'file'),
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
+    'frontend_url' => env(
+    'FRONTEND_URL',
+    'http://localhost:5173'
+),
 
 ];

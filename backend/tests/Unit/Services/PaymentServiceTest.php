@@ -6,13 +6,18 @@ use App\Contracts\Repositories\PaymentRepositoryInterface;
 use App\Contracts\Services\PaymentGatewayInterface;
 use App\Enums\PaymentStatus;
 use App\Models\Payment;
+use App\Models\Project;
+use App\Models\User;
 use App\Services\PaymentService;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Validation\ValidationException;
 use Mockery;
 use Tests\TestCase;
 
 class PaymentServiceTest extends TestCase
 {
+    use RefreshDatabase;
+
     private PaymentRepositoryInterface $paymentRepository;
 
     private PaymentGatewayInterface $paymentGateway;
@@ -37,26 +42,50 @@ class PaymentServiceTest extends TestCase
         );
     }
 
+    protected function tearDown(): void
+    {
+        Mockery::close();
+
+        parent::tearDown();
+    }
+
+
+private function createPendingPayment(): Payment
+{
+    $user = User::factory()->create();
+
+    $project = Project::factory()->create();
+
+    return Payment::create([
+        'user_id' => $user->id,
+        'project_id' => $project->id,
+        'amount' => 100,
+        'currency' => 'IRR',
+        'gateway' => 'zarinpal',
+        'status' => PaymentStatus::PENDING,
+    ]);
+}
+
+
     public function test_it_marks_payment_as_successful(): void
     {
-        $payment = new Payment([
-            'status' => PaymentStatus::PENDING,
-        ]);
-
-        $payment->id = 1;
+        $payment = $this->createPendingPayment();
 
         $updatedPayment = new Payment([
             'status' => PaymentStatus::SUCCESSFUL,
             'transaction_id' => 'REF-123456',
         ]);
 
-        $updatedPayment->id = 1;
+        $updatedPayment->id = $payment->id;
 
         $this->paymentRepository
             ->shouldReceive('update')
             ->once()
             ->with(
-                $payment,
+                Mockery::on(function (Payment $model) use ($payment) {
+                    return $model->id === $payment->id
+                        && $model->status === PaymentStatus::PENDING;
+                }),
                 Mockery::on(function (array $data) {
                     return $data['status']
                         === PaymentStatus::SUCCESSFUL
@@ -85,23 +114,22 @@ class PaymentServiceTest extends TestCase
 
     public function test_it_marks_payment_as_failed(): void
     {
-        $payment = new Payment([
-            'status' => PaymentStatus::PENDING,
-        ]);
-
-        $payment->id = 1;
+        $payment = $this->createPendingPayment();
 
         $updatedPayment = new Payment([
             'status' => PaymentStatus::FAILED,
         ]);
 
-        $updatedPayment->id = 1;
+        $updatedPayment->id = $payment->id;
 
         $this->paymentRepository
             ->shouldReceive('update')
             ->once()
             ->with(
-                $payment,
+                Mockery::on(function (Payment $model) use ($payment) {
+                    return $model->id === $payment->id
+                        && $model->status === PaymentStatus::PENDING;
+                }),
                 [
                     'status' => PaymentStatus::FAILED,
                 ]
@@ -120,23 +148,22 @@ class PaymentServiceTest extends TestCase
 
     public function test_it_marks_payment_as_cancelled(): void
     {
-        $payment = new Payment([
-            'status' => PaymentStatus::PENDING,
-        ]);
-
-        $payment->id = 1;
+        $payment = $this->createPendingPayment();
 
         $updatedPayment = new Payment([
             'status' => PaymentStatus::CANCELLED,
         ]);
 
-        $updatedPayment->id = 1;
+        $updatedPayment->id = $payment->id;
 
         $this->paymentRepository
             ->shouldReceive('update')
             ->once()
             ->with(
-                $payment,
+                Mockery::on(function (Payment $model) use ($payment) {
+                    return $model->id === $payment->id
+                        && $model->status === PaymentStatus::PENDING;
+                }),
                 [
                     'status' => PaymentStatus::CANCELLED,
                 ]
@@ -256,11 +283,7 @@ class PaymentServiceTest extends TestCase
 
     public function test_it_marks_payment_as_failed_when_gateway_request_fails(): void
     {
-        $payment = new Payment([
-            'status' => PaymentStatus::PENDING,
-        ]);
-
-        $payment->id = 1;
+        $payment = $this->createPendingPayment();
 
         $callbackUrl = 'https://example.com/callback';
 
@@ -276,20 +299,25 @@ class PaymentServiceTest extends TestCase
                 'message' => 'Gateway error.',
             ]);
 
+        $updatedPayment = new Payment([
+            'status' => PaymentStatus::FAILED,
+        ]);
+
+        $updatedPayment->id = $payment->id;
+
         $this->paymentRepository
             ->shouldReceive('update')
             ->once()
             ->with(
-                $payment,
+                Mockery::on(function (Payment $model) use ($payment) {
+                    return $model->id === $payment->id
+                        && $model->status === PaymentStatus::PENDING;
+                }),
                 [
                     'status' => PaymentStatus::FAILED,
                 ]
             )
-            ->andReturn(
-                new Payment([
-                    'status' => PaymentStatus::FAILED,
-                ])
-            );
+            ->andReturn($updatedPayment);
 
         $result = $this->paymentService->initiatePayment(
             $payment,
@@ -357,3 +385,4 @@ class PaymentServiceTest extends TestCase
         $this->assertNull($result);
     }
 }
+

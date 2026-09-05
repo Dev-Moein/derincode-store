@@ -3,6 +3,7 @@
 namespace Tests\Unit\Services;
 
 use App\Contracts\Repositories\DownloadRepositoryInterface;
+use App\Contracts\Services\PaymentServiceInterface;
 use App\Models\Download;
 use App\Models\User;
 use App\Services\DownloadService;
@@ -35,6 +36,10 @@ class DownloadServiceTest extends TestCase
             DownloadRepositoryInterface::class
         );
 
+        $paymentService = Mockery::mock(
+            PaymentServiceInterface::class
+        );
+
         $repository
             ->shouldReceive('create')
             ->once()
@@ -59,7 +64,8 @@ class DownloadServiceTest extends TestCase
             ->andReturn($download);
 
         $service = new DownloadService(
-            $repository
+            $repository,
+            $paymentService
         );
 
         $result = $service->createRecord(
@@ -94,6 +100,10 @@ class DownloadServiceTest extends TestCase
             DownloadRepositoryInterface::class
         );
 
+        $paymentService = Mockery::mock(
+            PaymentServiceInterface::class
+        );
+
         $repository
             ->shouldReceive('paginateForUser')
             ->once()
@@ -104,7 +114,8 @@ class DownloadServiceTest extends TestCase
             ->andReturn($paginator);
 
         $service = new DownloadService(
-            $repository
+            $repository,
+            $paymentService
         );
 
         $result = $service->paginateForUser(
@@ -133,6 +144,10 @@ class DownloadServiceTest extends TestCase
             DownloadRepositoryInterface::class
         );
 
+        $paymentService = Mockery::mock(
+            PaymentServiceInterface::class
+        );
+
         $repository
             ->shouldReceive('paginateForUser')
             ->once()
@@ -143,7 +158,8 @@ class DownloadServiceTest extends TestCase
             ->andReturn($paginator);
 
         $service = new DownloadService(
-            $repository
+            $repository,
+            $paymentService
         );
 
         $result = $service->paginateForUser(
@@ -156,3 +172,4 @@ class DownloadServiceTest extends TestCase
         );
     }
 }
+

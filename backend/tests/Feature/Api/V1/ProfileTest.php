@@ -6,6 +6,8 @@ namespace Tests\Feature\Api\V1;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
+use App\Contracts\Services\PaymentGatewayInterface;
+use Mockery;
 
 class ProfileTest extends TestCase
 {
@@ -14,6 +16,15 @@ class ProfileTest extends TestCase
     /**
      * Authenticated user can view their profile.
      */
+    protected function setUp(): void
+{
+    parent::setUp();
+
+    $this->app->instance(
+        PaymentGatewayInterface::class,
+        Mockery::mock(PaymentGatewayInterface::class)
+    );
+}
     public function test_authenticated_user_can_view_profile(): void
     {
         $user = User::factory()->create();

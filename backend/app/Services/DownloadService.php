@@ -4,8 +4,8 @@ namespace App\Services;
 
 use App\Contracts\Repositories\DownloadRepositoryInterface;
 use App\Contracts\Services\DownloadServiceInterface;
+use App\Contracts\Services\PaymentServiceInterface;
 use App\Models\Download;
-use App\Models\Payment;
 use App\Models\Project;
 use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -15,9 +15,10 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class DownloadService implements DownloadServiceInterface
 {
-    public function __construct(
-        private readonly DownloadRepositoryInterface $downloadRepository,
-    ) {}
+public function __construct(
+    private readonly DownloadRepositoryInterface $downloadRepository,
+    private readonly PaymentServiceInterface $paymentService,
+) {}
 
     /**
      * Download a purchased project file.
@@ -44,12 +45,11 @@ class DownloadService implements DownloadServiceInterface
             ]);
         }
 
-        $payment = Payment::query()
-            ->where('user_id', $user->id)
-            ->where('project_id', $project->id)
-            ->where('status', 'successful')
-            ->latest('id')
-            ->first();
+       $payment = $this->paymentService
+    ->findSuccessfulPayment(
+        userId: $user->id,
+        projectId: $project->id,
+    );
 
         if (! $payment) {
             throw ValidationException::withMessages([
@@ -109,16 +109,16 @@ class DownloadService implements DownloadServiceInterface
     /**
      * Check whether the user has successfully purchased the project.
      */
-    public function hasPurchased(
-        int $userId,
-        int $projectId
-    ): bool {
-        return Payment::query()
-            ->where('user_id', $userId)
-            ->where('project_id', $projectId)
-            ->where('status', 'successful')
-            ->exists();
-    }
+   public function hasPurchased(
+    int $userId,
+    int $projectId
+): bool {
+    return $this->paymentService
+        ->hasPurchasedProject(
+            userId: $userId,
+            projectId: $projectId,
+        );
+}
 
     /**
      * Get authenticated user's download history.

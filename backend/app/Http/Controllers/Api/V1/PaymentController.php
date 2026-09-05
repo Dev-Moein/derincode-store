@@ -9,6 +9,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\StorePaymentRequest;
 use App\Http\Resources\Api\V1\PaymentResource;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
 class PaymentController extends Controller
@@ -18,9 +19,6 @@ class PaymentController extends Controller
         private readonly PaymentGatewayInterface $paymentGateway,
     ) {}
 
-    /**
-     * Display authenticated user's payments.
-     */
     public function index(Request $request)
     {
         $payments = $this->paymentService->paginateForUser(
@@ -34,9 +32,35 @@ class PaymentController extends Controller
         return PaymentResource::collection($payments);
     }
 
-    /**
-     * Create and initiate a payment for a project.
-     */
+    public function show(
+        Request $request,
+        int $id
+    ): JsonResponse {
+        $payment = $this->paymentService
+            ->findByIdForUser(
+                id: $id,
+                userId: $request->user()->id,
+            );
+
+        if (! $payment) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Payment not found.',
+                'data' => null,
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Payment retrieved successfully.',
+            'data' => [
+                'payment' => new PaymentResource(
+                    $payment
+                ),
+            ],
+        ]);
+    }
+
     public function store(
         StorePaymentRequest $request
     ): JsonResponse {
@@ -78,82 +102,111 @@ class PaymentController extends Controller
         ], 201);
     }
 
-    /**
-     * Zarinpal payment callback.
-     *
-     * This route must NOT use auth:sanctum because
-     * the payment gateway redirects the customer here.
-     */
     public function callback(
         Request $request,
         int $payment
-    ): JsonResponse {
-        $paymentModel = $this->paymentService->findById($payment);
-
-        if (! $paymentModel) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Payment not found.',
-                'data' => null,
-            ], 404);
-        }
-
+    ): RedirectResponse {
         /*
         |--------------------------------------------------------------------------
-        | Already successful
+        | 1. Find Payment
         |--------------------------------------------------------------------------
         */
 
-        if ($paymentModel->status === PaymentStatus::SUCCESSFUL) {
-            $paymentModel->load('project');
+        $paymentModel = $this->paymentService->findById(
+            $payment
+        );
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Payment has already been verified.',
-                'data' => new PaymentResource($paymentModel),
-            ]);
+        if (! $paymentModel) {
+            return redirect(
+                config('app.frontend_url')
+                . '/payment/result?status=error&reason=not-found'
+            );
         }
 
         /*
         |--------------------------------------------------------------------------
-        | Get gateway callback parameters
+        | 2. Idempotency
+        |--------------------------------------------------------------------------
+        |
+        | If this payment was already successfully completed,
+        | do not verify it again.
+        |
+        */
+
+        if (
+            $paymentModel->status === PaymentStatus::SUCCESSFUL
+        ) {
+            return redirect(
+                config('app.frontend_url')
+                . '/payment/result?status=success'
+                . '&payment=' . $paymentModel->id
+            );
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | 3. Get Gateway Callback Data
         |--------------------------------------------------------------------------
         */
 
         $authority = $request->query('Authority');
         $status = $request->query('Status');
 
+        /*
+        |--------------------------------------------------------------------------
+        | 4. Validate Authority
+        |--------------------------------------------------------------------------
+        */
+
         if (! $authority) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Payment authority is missing.',
-                'data' => null,
-            ], 400);
+            return redirect(
+                config('app.frontend_url')
+                . '/payment/result?status=error&reason=missing-authority'
+            );
+        }
+
+        if (! $paymentModel->authority) {
+            return redirect(
+                config('app.frontend_url')
+                . '/payment/result?status=error&reason=missing-payment-authority'
+            );
+        }
+
+        if (
+            ! hash_equals(
+                (string) $paymentModel->authority,
+                (string) $authority
+            )
+        ) {
+            return redirect(
+                config('app.frontend_url')
+                . '/payment/result?status=error&reason=invalid-authority'
+            );
         }
 
         /*
         |--------------------------------------------------------------------------
-        | Customer cancelled payment
+        | 5. Check Gateway Payment Status
         |--------------------------------------------------------------------------
         */
 
-        if (strtoupper((string) $status) !== 'OK') {
+        if (
+            strtoupper((string) $status) !== 'OK'
+        ) {
             $paymentModel = $this->paymentService->markAsCancelled(
                 $paymentModel
             );
 
-            $paymentModel->load('project');
-
-            return response()->json([
-                'success' => false,
-                'message' => 'Payment was cancelled.',
-                'data' => new PaymentResource($paymentModel),
-            ], 400);
+            return redirect(
+                config('app.frontend_url')
+                . '/payment/result?status=cancelled'
+                . '&payment=' . $paymentModel->id
+            );
         }
 
         /*
         |--------------------------------------------------------------------------
-        | Verify payment with gateway
+        | 6. Verify Payment With Gateway
         |--------------------------------------------------------------------------
         */
 
@@ -162,26 +215,27 @@ class PaymentController extends Controller
             (string) $authority
         );
 
+        /*
+        |--------------------------------------------------------------------------
+        | 7. Verification Failed
+        |--------------------------------------------------------------------------
+        */
+
         if (! $result['success']) {
             $paymentModel = $this->paymentService->markAsFailed(
                 $paymentModel
             );
 
-            $paymentModel->load('project');
-
-            return response()->json([
-                'success' => false,
-                'message' => 'Payment verification failed.',
-                'data' => [
-                    'payment' => new PaymentResource($paymentModel),
-                    'code' => $result['code'] ?? null,
-                ],
-            ], 422);
+            return redirect(
+                config('app.frontend_url')
+                . '/payment/result?status=failed'
+                . '&payment=' . $paymentModel->id
+            );
         }
 
         /*
         |--------------------------------------------------------------------------
-        | Mark payment as successful
+        | 8. Mark Payment As Successful
         |--------------------------------------------------------------------------
         */
 
@@ -190,44 +244,16 @@ class PaymentController extends Controller
             $result['ref_id'] ?? null
         );
 
-        $paymentModel->load('project');
+        /*
+        |--------------------------------------------------------------------------
+        | 9. Redirect To Frontend
+        |--------------------------------------------------------------------------
+        */
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Payment verified successfully.',
-            'data' => [
-                'payment' => new PaymentResource($paymentModel),
-                'ref_id' => $result['ref_id'] ?? null,
-            ],
-        ]);
-    }
-
-    /**
-     * Display a single payment belonging to authenticated user.
-     */
-    public function show(
-        Request $request,
-        int $id
-    ): JsonResponse {
-        $payment = $this->paymentService->findById($id);
-
-        if (
-            ! $payment ||
-            $payment->user_id !== $request->user()->id
-        ) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Payment not found.',
-                'data' => null,
-            ], 404);
-        }
-
-        $payment->load('project');
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Payment retrieved successfully.',
-            'data' => new PaymentResource($payment),
-        ]);
+        return redirect(
+            config('app.frontend_url')
+            . '/payment/result?status=success'
+            . '&payment=' . $paymentModel->id
+        );
     }
 }

@@ -15,7 +15,15 @@ use Tests\TestCase;
 class PaymentTest extends TestCase
 {
     use RefreshDatabase;
+    protected function setUp(): void
+{
+    parent::setUp();
 
+    $this->app->instance(
+        PaymentGatewayInterface::class,
+        Mockery::mock(PaymentGatewayInterface::class)
+    );
+}
     private function user(): User
     {
         /** @var User $user */
@@ -85,6 +93,11 @@ class PaymentTest extends TestCase
             ->assertJsonStructure([
                 'data',
             ]);
+
+        $this->assertCount(
+            2,
+            $response->json('data')
+        );
     }
 
     public function test_unauthenticated_user_cannot_list_payments(): void
@@ -170,7 +183,8 @@ class PaymentTest extends TestCase
             requestResult: [
                 'success' => true,
                 'authority' => 'TEST-AUTHORITY-123',
-                'payment_url' => 'https://example.com/payment/TEST-AUTHORITY-123',
+                'payment_url' =>
+                    'https://example.com/payment/TEST-AUTHORITY-123',
             ]
         );
 
@@ -203,6 +217,7 @@ class PaymentTest extends TestCase
             'amount' => $project->price,
             'currency' => $project->currency,
             'gateway' => 'zarinpal',
+            'authority' => 'TEST-AUTHORITY-123',
             'status' => PaymentStatus::PENDING->value,
         ]);
     }
@@ -220,7 +235,7 @@ class PaymentTest extends TestCase
         ]);
 
         $response
-            ->assertStatus(422)
+            ->assertUnprocessable()
             ->assertJson([
                 'success' => false,
                 'message' => 'Validation failed.',
@@ -245,8 +260,7 @@ class PaymentTest extends TestCase
             'gateway' => 'zarinpal',
         ]);
 
-        $response
-            ->assertStatus(422);
+        $response->assertUnprocessable();
     }
 
     public function test_user_cannot_purchase_unpublished_project(): void
@@ -267,8 +281,7 @@ class PaymentTest extends TestCase
             'gateway' => 'zarinpal',
         ]);
 
-        $response
-            ->assertStatus(422);
+        $response->assertUnprocessable();
     }
 
     public function test_user_cannot_purchase_project_with_invalid_price(): void
@@ -289,8 +302,7 @@ class PaymentTest extends TestCase
             'gateway' => 'zarinpal',
         ]);
 
-        $response
-            ->assertStatus(422);
+        $response->assertUnprocessable();
     }
 
     public function test_user_cannot_purchase_same_project_twice_after_successful_payment(): void
@@ -314,8 +326,7 @@ class PaymentTest extends TestCase
             'gateway' => 'zarinpal',
         ]);
 
-        $response
-            ->assertStatus(422);
+        $response->assertUnprocessable();
     }
 
     public function test_user_can_view_own_payment(): void
@@ -340,7 +351,7 @@ class PaymentTest extends TestCase
                 'message' => 'Payment retrieved successfully.',
             ])
             ->assertJsonPath(
-                'data.id',
+                'data.payment.id',
                 $payment->id
             );
     }
@@ -383,55 +394,146 @@ class PaymentTest extends TestCase
             ]);
     }
 
-    public function test_callback_returns_404_for_unknown_payment(): void
+    /**
+     * Unknown callback payment redirects to frontend error page.
+     */
+    public function test_callback_returns_error_for_unknown_payment(): void
     {
-        $response = $this->getJson(
+        $response = $this->get(
             '/api/v1/payments/999999/callback?Authority=TEST&Status=OK'
         );
 
-        $response
-            ->assertNotFound()
-            ->assertJson([
-                'success' => false,
-                'message' => 'Payment not found.',
-            ]);
+        $response->assertRedirect();
+
+        $this->assertStringContainsString(
+            'status=error',
+            $response->headers->get('Location')
+        );
+
+        $this->assertStringContainsString(
+            'reason=not-found',
+            $response->headers->get('Location')
+        );
     }
 
+    /**
+     * Callback requires Authority.
+     */
     public function test_callback_requires_authority(): void
     {
         $payment = Payment::factory()
             ->pending()
-            ->create();
+            ->create([
+                'authority' => 'TEST-AUTHORITY',
+            ]);
 
-        $response = $this->getJson(
+        $response = $this->get(
             "/api/v1/payments/{$payment->id}/callback?Status=OK"
         );
 
-        $response
-            ->assertStatus(400)
-            ->assertJson([
-                'success' => false,
-                'message' => 'Payment authority is missing.',
-            ]);
+        $response->assertRedirect();
+
+        $this->assertStringContainsString(
+            'status=error',
+            $response->headers->get('Location')
+        );
+
+        $this->assertStringContainsString(
+            'reason=missing-authority',
+            $response->headers->get('Location')
+        );
     }
 
+    /**
+     * Callback rejects a payment without stored authority.
+     */
+    public function test_callback_rejects_payment_without_stored_authority(): void
+    {
+        $payment = Payment::factory()
+            ->pending()
+            ->create([
+                'authority' => null,
+            ]);
+
+        $response = $this->get(
+            "/api/v1/payments/{$payment->id}/callback?" .
+            'Authority=TEST-AUTHORITY&Status=OK'
+        );
+
+        $response->assertRedirect();
+
+        $this->assertStringContainsString(
+            'status=error',
+            $response->headers->get('Location')
+        );
+
+        $this->assertStringContainsString(
+            'reason=missing-payment-authority',
+            $response->headers->get('Location')
+        );
+    }
+
+    /**
+     * Callback rejects an invalid Authority.
+     */
+    public function test_callback_rejects_invalid_authority(): void
+    {
+        $payment = Payment::factory()
+            ->pending()
+            ->create([
+                'authority' => 'REAL-AUTHORITY',
+            ]);
+
+        $response = $this->get(
+            "/api/v1/payments/{$payment->id}/callback?" .
+            'Authority=FAKE-AUTHORITY&Status=OK'
+        );
+
+        $response->assertRedirect();
+
+        $this->assertStringContainsString(
+            'status=error',
+            $response->headers->get('Location')
+        );
+
+        $this->assertStringContainsString(
+            'reason=invalid-authority',
+            $response->headers->get('Location')
+        );
+
+        $this->assertDatabaseHas('payments', [
+            'id' => $payment->id,
+            'status' => PaymentStatus::PENDING->value,
+        ]);
+    }
+
+    /**
+     * Cancelled callback marks pending payment as cancelled.
+     */
     public function test_cancelled_payment_callback_marks_payment_as_cancelled(): void
     {
         $payment = Payment::factory()
             ->pending()
-            ->create();
+            ->create([
+                'authority' => 'TEST-AUTHORITY',
+            ]);
 
-        $response = $this->getJson(
-            "/api/v1/payments/{$payment->id}/callback?".
+        $response = $this->get(
+            "/api/v1/payments/{$payment->id}/callback?" .
             'Authority=TEST-AUTHORITY&Status=NOK'
         );
 
-        $response
-            ->assertStatus(400)
-            ->assertJson([
-                'success' => false,
-                'message' => 'Payment was cancelled.',
-            ]);
+        $response->assertRedirect();
+
+        $this->assertStringContainsString(
+            'status=cancelled',
+            $response->headers->get('Location')
+        );
+
+        $this->assertStringContainsString(
+            "payment={$payment->id}",
+            $response->headers->get('Location')
+        );
 
         $this->assertDatabaseHas('payments', [
             'id' => $payment->id,
@@ -439,11 +541,16 @@ class PaymentTest extends TestCase
         ]);
     }
 
+    /**
+     * Failed verification marks payment as failed.
+     */
     public function test_failed_payment_verification_marks_payment_as_failed(): void
     {
         $payment = Payment::factory()
             ->pending()
-            ->create();
+            ->create([
+                'authority' => 'TEST-AUTHORITY',
+            ]);
 
         $this->mockPaymentGateway(
             verifyResult: [
@@ -452,17 +559,22 @@ class PaymentTest extends TestCase
             ]
         );
 
-        $response = $this->getJson(
-            "/api/v1/payments/{$payment->id}/callback?".
+        $response = $this->get(
+            "/api/v1/payments/{$payment->id}/callback?" .
             'Authority=TEST-AUTHORITY&Status=OK'
         );
 
-        $response
-            ->assertStatus(422)
-            ->assertJson([
-                'success' => false,
-                'message' => 'Payment verification failed.',
-            ]);
+        $response->assertRedirect();
+
+        $this->assertStringContainsString(
+            'status=failed',
+            $response->headers->get('Location')
+        );
+
+        $this->assertStringContainsString(
+            "payment={$payment->id}",
+            $response->headers->get('Location')
+        );
 
         $this->assertDatabaseHas('payments', [
             'id' => $payment->id,
@@ -470,11 +582,16 @@ class PaymentTest extends TestCase
         ]);
     }
 
+    /**
+     * Successful verification marks payment as successful.
+     */
     public function test_successful_payment_callback_marks_payment_as_successful(): void
     {
         $payment = Payment::factory()
             ->pending()
-            ->create();
+            ->create([
+                'authority' => 'TEST-AUTHORITY',
+            ]);
 
         $this->mockPaymentGateway(
             verifyResult: [
@@ -483,20 +600,22 @@ class PaymentTest extends TestCase
             ]
         );
 
-        $response = $this->getJson(
-            "/api/v1/payments/{$payment->id}/callback?".
+        $response = $this->get(
+            "/api/v1/payments/{$payment->id}/callback?" .
             'Authority=TEST-AUTHORITY&Status=OK'
         );
 
-        $response
-            ->assertOk()
-            ->assertJson([
-                'success' => true,
-                'message' => 'Payment verified successfully.',
-                'data' => [
-                    'ref_id' => 'REF-123456',
-                ],
-            ]);
+        $response->assertRedirect();
+
+        $this->assertStringContainsString(
+            'status=success',
+            $response->headers->get('Location')
+        );
+
+        $this->assertStringContainsString(
+            "payment={$payment->id}",
+            $response->headers->get('Location')
+        );
 
         $this->assertDatabaseHas('payments', [
             'id' => $payment->id,
@@ -505,22 +624,38 @@ class PaymentTest extends TestCase
         ]);
     }
 
+    /**
+     * Successful callback is idempotent.
+     */
     public function test_successful_payment_callback_is_idempotent(): void
     {
         $payment = Payment::factory()
             ->successful()
-            ->create();
+            ->create([
+                'authority' => 'TEST-AUTHORITY',
+            ]);
 
-        $response = $this->getJson(
-            "/api/v1/payments/{$payment->id}/callback"
+        $response = $this->get(
+            "/api/v1/payments/{$payment->id}/callback?" .
+            'Authority=TEST-AUTHORITY&Status=OK'
         );
 
-        $response
-            ->assertOk()
-            ->assertJson([
-                'success' => true,
-                'message' => 'Payment has already been verified.',
-            ]);
+        $response->assertRedirect();
+
+        $this->assertStringContainsString(
+            'status=success',
+            $response->headers->get('Location')
+        );
+
+        $this->assertStringContainsString(
+            "payment={$payment->id}",
+            $response->headers->get('Location')
+        );
+
+        $this->assertDatabaseHas('payments', [
+            'id' => $payment->id,
+            'status' => PaymentStatus::SUCCESSFUL->value,
+        ]);
     }
 
     public function test_unauthenticated_user_cannot_view_single_payment(): void

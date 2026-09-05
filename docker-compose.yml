@@ -17,7 +17,20 @@ services:
     networks:
       - portfolio
 
-
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: portfolio-frontend
+    working_dir: /app
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    ports:
+      - "5173:5173"
+    depends_on:
+      - app
+      
   worker:
     build:
       context: ./docker/php

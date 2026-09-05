@@ -9,11 +9,22 @@ use App\Models\Role;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
+use App\Contracts\Services\PaymentGatewayInterface;
+use Mockery;
 
 class ProjectTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+{
+    parent::setUp();
+
+    $this->app->instance(
+        PaymentGatewayInterface::class,
+        Mockery::mock(PaymentGatewayInterface::class)
+    );
+}
     private function admin(): User
     {
         /** @var User $user */

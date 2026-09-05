@@ -193,19 +193,16 @@ Route::post('/contact', [
             | User's own project requests.
             */
 
-            Route::get('/', [
-                ProjectRequestController::class,
-                'index',
-            ])->middleware('permission:project-requests.view');
+           Route::get('/', [
+    ProjectRequestController::class,
+    'index',
+]);
 
-            /*
-            | Create a new project request.
-            */
 
-            Route::post('/', [
-                ProjectRequestController::class,
-                'store',
-            ])->middleware('permission:project-requests.create');
+Route::post('/', [
+    ProjectRequestController::class,
+    'store',
+]);
 
             /*
             |------------------------------------------------------------------
