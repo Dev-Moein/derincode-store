@@ -8,7 +8,19 @@
 
 
 <p align="center">
-A modern full-stack digital marketplace built with Laravel and Vue.js.
+
+A production-oriented full-stack digital marketplace built with Laravel and Vue.js, focusing on scalable architecture, clean backend design, and modern development practices.
+
+</p>
+
+
+<p align="center">
+
+![Laravel](https://img.shields.io/badge/Laravel-12-FF2D20?style=flat&logo=laravel)
+![Vue.js](https://img.shields.io/badge/Vue.js-3-42B883?style=flat&logo=vue.js)
+![Docker](https://img.shields.io/badge/Docker-Containerized-2496ED?style=flat&logo=docker)
+![MySQL](https://img.shields.io/badge/MySQL-Database-4479A1?style=flat&logo=mysql)
+
 </p>
 
 
@@ -16,18 +28,35 @@ A modern full-stack digital marketplace built with Laravel and Vue.js.
 
 # 📌 About The Project
 
-**Derincode Store** is a full-stack e-commerce platform designed for selling digital products.
+**Derincode Store** is a full-stack digital marketplace developed for managing and selling digital products.
 
-The project focuses on building a scalable and maintainable application using modern software engineering principles including clean architecture, service layers, API design, background processing, and containerized development.
+The project is built with a focus on real-world software engineering concepts:
+
+- Scalable backend architecture
+- Clean code practices
+- REST API design
+- Maintainable business logic
+- Containerized development workflow
+
+
+The goal of this project is not only building an e-commerce system, but also applying professional development patterns used in production applications.
+
+
+---
+
+# 🌐 Demo
+
+Coming soon...
 
 
 ---
 
 # ✨ Features
 
+
 ## Backend
 
-- Laravel REST API
+- Laravel REST API architecture
 - Authentication system
 - Role-based authorization
 - Product management
@@ -41,7 +70,7 @@ The project focuses on building a scalable and maintainable application using mo
 - Repository Pattern
 - Dependency Injection
 - Database transactions
-- Queue & Jobs
+- Queue & Job processing
 - Events & Listeners
 - Email notifications
 
@@ -52,17 +81,18 @@ The project focuses on building a scalable and maintainable application using mo
 - Composition API
 - Pinia State Management
 - Vue Router
-- Axios API integration
-- Responsive interface
-- Component-based structure
-- Modern UI design
+- Axios API communication
+- Responsive UI
+- Component-based architecture
+- Modern user experience
 
 
 ---
 
 # 🏗 Architecture
 
-The backend structure is designed with separation of concerns:
+The backend follows a structured architecture based on separation of concerns.
+
 
 ```
 backend
@@ -88,12 +118,71 @@ app
 ```
 
 
-Main principles:
+Implemented concepts:
 
 - SOLID Principles
 - Clean Code
-- Maintainable Business Logic
-- Scalable Architecture
+- Separation of Concerns
+- Dependency Injection
+- Reusable Business Logic
+
+
+---
+
+# 🔌 API Overview
+
+The backend provides RESTful APIs for:
+
+
+### Authentication
+
+- User registration
+- Login
+- Authorization
+
+
+### Products
+
+- Product listing
+- Product details
+- Product management
+
+
+### Orders & Payments
+
+- Purchase workflow
+- Payment processing
+- Order tracking
+
+
+### User Management
+
+- Profile management
+- Purchase history
+
+
+---
+
+# 🗄 Database Design
+
+Main entities:
+
+```
+Users
+
+Products
+
+Categories
+
+Orders
+
+Payments
+
+Purchases
+
+```
+
+The database structure is designed to support scalable e-commerce workflows.
 
 
 ---
@@ -116,7 +205,7 @@ Main principles:
 
 | Technology | Purpose |
 |---|---|
-| Vue.js | Frontend Framework |
+| Vue.js 3 | Frontend Framework |
 | Pinia | State Management |
 | Axios | API Communication |
 | Vite | Build Tool |
@@ -129,7 +218,7 @@ Main principles:
 
 ## Requirements
 
-Before running the project make sure you have:
+Before running the project:
 
 - Docker
 - Docker Compose
@@ -141,7 +230,7 @@ Before running the project make sure you have:
 ## Installation
 
 
-Clone the repository:
+Clone repository:
 
 ```bash
 git clone https://github.com/Dev-Moein/derincode-store.git
@@ -151,6 +240,7 @@ cd derincode-store
 
 
 Create environment files:
+
 
 Backend:
 
@@ -168,21 +258,25 @@ cp frontend/.env.example frontend/.env
 
 Build and start containers:
 
-
 ```bash
 docker compose up -d --build
 ```
 
 
-The following services will start automatically:
+Docker will start:
 
 ```
-Frontend
+Frontend Application
+
 Backend API
-Database
+
+MySQL Database
+
 Redis
+
 Queue Worker
 ```
+
 
 ---
 
@@ -205,10 +299,10 @@ derincode-store
 │   ├── stores
 │   └── Dockerfile
 │
-├── docker-compose.yml
-│
 ├── screenshots
 │   └── home.png
+│
+├── docker-compose.yml
 │
 └── README.md
 ```
@@ -218,26 +312,63 @@ derincode-store
 
 # 🔐 Security
 
-Implemented:
+Implemented security practices:
+
 
 - Request validation
 - Authentication protection
 - Authorization rules
 - Secure API responses
-- Environment based configuration
+- Environment-based configuration
+- Protected business operations
 
 
 ---
 
-# 🎯 Development Purpose
+# 📸 Screenshots
 
-This project was created to practice real-world full-stack development:
 
-- Laravel advanced features
+## Home Page
+
+<img src="./screenshots/home.png" alt="Home Page" width="900">
+
+
+More screenshots will be added:
+
+- Product details
+- User dashboard
+- Admin panel
+
+
+---
+
+# 🎯 Development Goals
+
+
+This project was created to practice:
+
+
+- Advanced Laravel development
 - Vue.js application architecture
+- Full-stack workflow
 - REST API design
-- Docker workflow
-- Software architecture concepts
+- Docker-based development
+- Software architecture principles
+
+
+---
+
+# 🚀 Future Improvements
+
+
+Planned improvements:
+
+- Automated testing
+- CI/CD pipeline
+- Production deployment
+- Advanced caching strategies
+- More payment providers
+- Monitoring and logging
 
 
 ---
@@ -257,4 +388,4 @@ https://github.com/Dev-Moein
 
 ---
 
-⭐ If you like this project, consider giving it a star.
+⭐ If you find this project useful, consider giving it a star.
