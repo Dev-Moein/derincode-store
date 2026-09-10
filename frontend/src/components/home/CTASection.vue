@@ -2,19 +2,31 @@
   <section
     id="cta"
     class="cta-section"
->
-    <div class="cta-glow cta-glow-right"></div>
-    <div class="cta-glow cta-glow-left"></div>
+    aria-labelledby="cta-title"
+  >
+    <div
+      class="cta-glow cta-glow-right"
+      aria-hidden="true"
+    ></div>
+
+    <div
+      class="cta-glow cta-glow-left"
+      aria-hidden="true"
+    ></div>
 
     <div class="container">
       <div class="cta-content">
+
         <div class="cta-kicker">
-          <span></span>
+          <span aria-hidden="true"></span>
           شروع همکاری
-          <span></span>
+          <span aria-hidden="true"></span>
         </div>
 
-        <h2 class="cta-title">
+        <h2
+          id="cta-title"
+          class="cta-title"
+        >
           آماده‌ای ایده‌ات را
           <span>واقعی کنیم؟</span>
         </h2>
@@ -25,13 +37,29 @@
         </p>
 
         <div class="cta-actions">
-          <a href="#contact" class="cta-primary">
+          <a
+            href="#contact"
+            class="cta-primary"
+            aria-label="شروع یک پروژه و ارسال درخواست همکاری"
+          >
             <span>شروع یک پروژه</span>
-            <span class="cta-arrow">←</span>
+
+            <span
+              class="cta-arrow"
+              aria-hidden="true"
+            >
+              ←
+            </span>
           </a>
 
-          <a href="#projects" class="cta-secondary"> مشاهده نمونه‌کارها </a>
+          <a
+            href="#projects"
+            class="cta-secondary"
+          >
+            مشاهده نمونه‌کارها
+          </a>
         </div>
+
       </div>
     </div>
   </section>
@@ -45,12 +73,13 @@
 
   overflow: hidden;
 
-  background: linear-gradient(
-    180deg,
-    var(--bg-primary),
-    #070809 45%,
-    var(--bg-primary)
-  );
+  background:
+    linear-gradient(
+      180deg,
+      var(--bg-primary),
+      #070809 45%,
+      var(--bg-primary)
+    );
 }
 
 .cta-section::before {
@@ -62,12 +91,13 @@
 
   height: 1px;
 
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(255, 255, 255, 0.08),
-    transparent
-  );
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.08),
+      transparent
+    );
 }
 
 /* ----------------------------- */
@@ -119,20 +149,27 @@
 .cta-kicker {
   display: inline-flex;
   align-items: center;
-  gap: 9px;
+  gap: 10px;
 
   color: var(--orange);
 
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 700;
+  line-height: 1.7;
 }
 
 .cta-kicker span {
-  width: 18px;
+  width: 20px;
   height: 1px;
+
+  flex-shrink: 0;
 
   background: var(--orange);
 }
+
+/* ----------------------------- */
+/* Title */
+/* ----------------------------- */
 
 .cta-title {
   margin: 19px 0 0;
@@ -140,18 +177,22 @@
   color: var(--text-primary);
 
   font-size: clamp(37px, 5vw, 62px);
-  line-height: 1.2;
+  font-weight: 850;
+  line-height: 1.32;
 
-  font-weight: 900;
-
-  letter-spacing: -0.045em;
+  letter-spacing: -0.035em;
 }
 
 .cta-title span {
   color: var(--orange);
 
-  text-shadow: 0 0 30px rgba(255, 107, 0, 0.12);
+  text-shadow:
+    0 0 30px rgba(255, 107, 0, 0.12);
 }
+
+/* ----------------------------- */
+/* Description */
+/* ----------------------------- */
 
 .cta-description {
   max-width: 550px;
@@ -160,7 +201,8 @@
 
   color: var(--text-secondary);
 
-  font-size: 13px;
+  font-size: 14px;
+  font-weight: 400;
   line-height: 2.15;
 }
 
@@ -169,17 +211,18 @@
 /* ----------------------------- */
 
 .cta-actions {
-  margin-top: 31px;
+  margin-top: 32px;
 
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 11px;
+
+  gap: 12px;
 }
 
 .cta-primary,
 .cta-secondary {
-  min-height: 46px;
+  min-height: 47px;
 
   display: inline-flex;
   align-items: center;
@@ -187,8 +230,12 @@
 
   border-radius: 8px;
 
-  font-size: 11px;
+  font-family: inherit;
+  font-size: 12px;
   font-weight: 700;
+  line-height: 1.7;
+
+  text-decoration: none;
 
   transition:
     transform var(--transition),
@@ -198,27 +245,36 @@
     box-shadow var(--transition);
 }
 
+/* Primary */
+
 .cta-primary {
   gap: 10px;
 
-  padding: 0 15px 0 10px;
+  padding: 0 16px 0 11px;
 
   color: #ffffff;
 
-  background: linear-gradient(135deg, #ff780f, #ff5f00);
+  background:
+    linear-gradient(
+      135deg,
+      #ff780f,
+      #ff5f00
+    );
 
-  box-shadow: 0 10px 30px rgba(255, 107, 0, 0.18);
+  box-shadow:
+    0 10px 30px rgba(255, 107, 0, 0.18);
 }
 
 .cta-primary:hover {
   transform: translateY(-2px);
 
-  box-shadow: 0 14px 38px rgba(255, 107, 0, 0.28);
+  box-shadow:
+    0 14px 38px rgba(255, 107, 0, 0.28);
 }
 
 .cta-arrow {
-  width: 26px;
-  height: 26px;
+  width: 27px;
+  height: 27px;
 
   display: flex;
   align-items: center;
@@ -229,16 +285,23 @@
   background: rgba(255, 255, 255, 0.14);
 
   font-size: 15px;
+  line-height: 1;
 
-  transition: transform var(--transition);
+  transition:
+    transform var(--transition),
+    background var(--transition);
 }
 
 .cta-primary:hover .cta-arrow {
   transform: translateX(-2px);
+
+  background: rgba(255, 255, 255, 0.2);
 }
 
+/* Secondary */
+
 .cta-secondary {
-  padding: 0 17px;
+  padding: 0 18px;
 
   color: var(--text-primary);
 
@@ -256,45 +319,72 @@
 }
 
 /* ----------------------------- */
+/* Focus */
+/* ----------------------------- */
+
+.cta-primary:focus-visible,
+.cta-secondary:focus-visible {
+  outline: 2px solid var(--orange);
+  outline-offset: 4px;
+}
+
+/* ----------------------------- */
 /* Responsive */
 /* ----------------------------- */
 
 @media (max-width: 768px) {
-    .cta-section {
-        padding: 82px 0 88px;
-    }
+  .cta-section {
+    padding: 82px 0 88px;
+  }
 
-    .cta-title {
-        font-size: 40px;
-    }
+  .cta-title {
+    font-size: 40px;
+  }
 
-    .cta-description {
-        font-size: 12px;
-    }
+  .cta-description {
+    max-width: 500px;
+
+    font-size: 13px;
+    line-height: 2.1;
+  }
 }
 
 @media (max-width: 500px) {
-    .cta-section {
-        padding: 70px 0 72px;
-    }
+  .cta-section {
+    padding: 70px 0 72px;
+  }
 
-    .cta-title {
-        font-size: 34px;
-        line-height: 1.3;
-    }
+  .cta-title {
+    font-size: 34px;
+    line-height: 1.35;
+  }
 
-    .cta-description {
-        max-width: 330px;
-    }
+  .cta-description {
+    max-width: 330px;
 
-    .cta-actions {
-        flex-direction: column;
-        width: 100%;
-    }
+    font-size: 12px;
+    line-height: 2.15;
+  }
 
-    .cta-primary,
-    .cta-secondary {
-        width: 100%;
-    }
+  .cta-actions {
+    flex-direction: column;
+
+    width: 100%;
+  }
+
+  .cta-primary,
+  .cta-secondary {
+    width: 100%;
+  }
+}
+
+@media (max-width: 380px) {
+  .cta-title {
+    font-size: 31px;
+  }
+
+  .cta-description {
+    font-size: 11.5px;
+  }
 }
 </style>

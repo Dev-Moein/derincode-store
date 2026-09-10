@@ -1,7 +1,5 @@
 <script setup>
 import { onMounted, reactive, ref } from 'vue'
-import MyRequestsSection from '../components/profile/MyRequestsSection.vue'
-
 import { useRouter } from 'vue-router'
 import {
     CheckCircle2,
@@ -15,6 +13,7 @@ import {
 } from 'lucide-vue-next'
 
 import { useAuthStore } from '../stores/auth'
+import MyRequestsSection from '../components/profile/MyRequestsSection.vue'
 import MyPurchasedProjectsSection from '../components/profile/MyPurchasedProjectsSection.vue'
 
 const router = useRouter()
@@ -57,26 +56,20 @@ const loadProfile = async () => {
         return
     }
 
-    profileForm.name =
-        authStore.user?.name || ''
-
-    profileForm.email =
-        authStore.user?.email || ''
-
-    profileForm.phone =
-        authStore.user?.phone || ''
+    profileForm.name = authStore.user?.name || ''
+    profileForm.email = authStore.user?.email || ''
+    profileForm.phone = authStore.user?.phone || ''
 }
 
 const updateProfile = async () => {
     profileMessage.value = ''
     profileError.value = ''
 
-    const result =
-        await authStore.updateProfile({
-            name: profileForm.name,
-            email: profileForm.email,
-            phone: profileForm.phone || null,
-        })
+    const result = await authStore.updateProfile({
+        name: profileForm.name,
+        email: profileForm.email,
+        phone: profileForm.phone || null,
+    })
 
     if (!result.success) {
         profileError.value =
@@ -95,17 +88,12 @@ const changePassword = async () => {
     passwordMessage.value = ''
     passwordError.value = ''
 
-    const result =
-        await authStore.changePassword({
-            current_password:
-                passwordForm.current_password,
-
-            password:
-                passwordForm.password,
-
-            password_confirmation:
-                passwordForm.password_confirmation,
-        })
+    const result = await authStore.changePassword({
+        current_password: passwordForm.current_password,
+        password: passwordForm.password,
+        password_confirmation:
+            passwordForm.password_confirmation,
+    })
 
     if (!result.success) {
         passwordError.value =
@@ -115,17 +103,17 @@ const changePassword = async () => {
         return
     }
 
-   passwordMessage.value =
-    result.message ||
-    'رمز عبور با موفقیت تغییر کرد.'
+    passwordMessage.value =
+        result.message ||
+        'رمز عبور با موفقیت تغییر کرد.'
 
-authStore.clearAuth()
+    authStore.clearAuth()
 
-setTimeout(() => {
-    router.replace({
-        name: 'login',
-    })
-}, 900)
+    setTimeout(() => {
+        router.replace({
+            name: 'login',
+        })
+    }, 900)
 }
 
 const logout = async () => {
@@ -140,17 +128,20 @@ onMounted(loadProfile)
 </script>
 
 <template>
-    <main class="profile-page">
+    <main
+        class="profile-page"
+        aria-labelledby="profile-title"
+    >
         <div class="container">
 
             <!-- Header -->
-            <div class="profile-header">
+            <header class="profile-header">
                 <div>
                     <span class="profile-kicker">
                         ACCOUNT
                     </span>
 
-                    <h1>
+                    <h1 id="profile-title">
                         پروفایل کاربری
                     </h1>
 
@@ -165,23 +156,33 @@ onMounted(loadProfile)
                     class="logout-button"
                     @click="logout"
                 >
-                    <LogOut :size="15" />
-                    خروج
-                </button>
-            </div>
+                    <LogOut
+                        :size="16"
+                        aria-hidden="true"
+                    />
 
-            <!-- Main Grid -->
+                    <span>خروج</span>
+                </button>
+            </header>
+
+            <!-- Account Settings -->
             <div class="profile-grid">
 
                 <!-- Personal Information -->
-                <section class="profile-card">
-                    <div class="card-header">
-                        <div class="card-icon">
+                <section
+                    class="profile-card"
+                    aria-labelledby="personal-info-title"
+                >
+                    <header class="card-header">
+                        <div
+                            class="card-icon"
+                            aria-hidden="true"
+                        >
                             <UserRound :size="18" />
                         </div>
 
                         <div>
-                            <h2>
+                            <h2 id="personal-info-title">
                                 اطلاعات شخصی
                             </h2>
 
@@ -189,19 +190,29 @@ onMounted(loadProfile)
                                 اطلاعات حساب خود را به‌روزرسانی کنید.
                             </p>
                         </div>
-                    </div>
+                    </header>
 
                     <div
                         v-if="profileMessage"
                         class="message success"
+                        role="status"
+                        aria-live="polite"
                     >
-                        <CheckCircle2 :size="15" />
-                        {{ profileMessage }}
+                        <CheckCircle2
+                            :size="16"
+                            aria-hidden="true"
+                        />
+
+                        <span>
+                            {{ profileMessage }}
+                        </span>
                     </div>
 
                     <div
                         v-if="profileError"
                         class="message error"
+                        role="alert"
+                        aria-live="assertive"
                     >
                         {{ profileError }}
                     </div>
@@ -217,7 +228,10 @@ onMounted(loadProfile)
                             </label>
 
                             <div class="input">
-                                <UserRound :size="15" />
+                                <UserRound
+                                    :size="16"
+                                    aria-hidden="true"
+                                />
 
                                 <input
                                     id="profile-name"
@@ -225,6 +239,9 @@ onMounted(loadProfile)
                                     type="text"
                                     autocomplete="name"
                                     required
+                                    :aria-invalid="
+                                        Boolean(authStore.errors.name)
+                                    "
                                 />
                             </div>
 
@@ -243,14 +260,22 @@ onMounted(loadProfile)
                             </label>
 
                             <div class="input">
-                                <Mail :size="15" />
+                                <Mail
+                                    :size="16"
+                                    aria-hidden="true"
+                                />
 
                                 <input
                                     id="profile-email"
                                     v-model="profileForm.email"
                                     type="email"
                                     autocomplete="email"
+                                    inputmode="email"
+                                    dir="ltr"
                                     required
+                                    :aria-invalid="
+                                        Boolean(authStore.errors.email)
+                                    "
                                 />
                             </div>
 
@@ -270,14 +295,22 @@ onMounted(loadProfile)
                             </label>
 
                             <div class="input">
-                                <Phone :size="15" />
+                                <Phone
+                                    :size="16"
+                                    aria-hidden="true"
+                                />
 
                                 <input
                                     id="profile-phone"
                                     v-model="profileForm.phone"
                                     type="tel"
                                     autocomplete="tel"
+                                    inputmode="tel"
+                                    dir="ltr"
                                     maxlength="30"
+                                    :aria-invalid="
+                                        Boolean(authStore.errors.phone)
+                                    "
                                 />
                             </div>
 
@@ -293,6 +326,7 @@ onMounted(loadProfile)
                             type="submit"
                             class="save-button"
                             :disabled="authStore.loading"
+                            :aria-busy="authStore.loading"
                         >
                             <span v-if="!authStore.loading">
                                 ذخیره تغییرات
@@ -300,27 +334,35 @@ onMounted(loadProfile)
 
                             <LoaderCircle
                                 v-else
-                                :size="16"
+                                :size="18"
                                 class="loader"
+                                aria-hidden="true"
                             />
 
                             <Save
                                 v-if="!authStore.loading"
-                                :size="15"
+                                :size="16"
+                                aria-hidden="true"
                             />
                         </button>
                     </form>
                 </section>
 
                 <!-- Password -->
-                <section class="profile-card">
-                    <div class="card-header">
-                        <div class="card-icon">
+                <section
+                    class="profile-card"
+                    aria-labelledby="password-title"
+                >
+                    <header class="card-header">
+                        <div
+                            class="card-icon"
+                            aria-hidden="true"
+                        >
                             <LockKeyhole :size="18" />
                         </div>
 
                         <div>
-                            <h2>
+                            <h2 id="password-title">
                                 تغییر رمز عبور
                             </h2>
 
@@ -328,19 +370,29 @@ onMounted(loadProfile)
                                 رمز عبور حساب خود را تغییر دهید.
                             </p>
                         </div>
-                    </div>
+                    </header>
 
                     <div
                         v-if="passwordMessage"
                         class="message success"
+                        role="status"
+                        aria-live="polite"
                     >
-                        <CheckCircle2 :size="15" />
-                        {{ passwordMessage }}
+                        <CheckCircle2
+                            :size="16"
+                            aria-hidden="true"
+                        />
+
+                        <span>
+                            {{ passwordMessage }}
+                        </span>
                     </div>
 
                     <div
                         v-if="passwordError"
                         class="message error"
+                        role="alert"
+                        aria-live="assertive"
                     >
                         {{ passwordError }}
                     </div>
@@ -356,7 +408,10 @@ onMounted(loadProfile)
                             </label>
 
                             <div class="input">
-                                <LockKeyhole :size="15" />
+                                <LockKeyhole
+                                    :size="16"
+                                    aria-hidden="true"
+                                />
 
                                 <input
                                     id="current-password"
@@ -366,13 +421,18 @@ onMounted(loadProfile)
                                     type="password"
                                     autocomplete="current-password"
                                     required
+                                    :aria-invalid="
+                                        Boolean(
+                                            authStore.errors
+                                                .current_password
+                                        )
+                                    "
                                 />
                             </div>
 
                             <span
                                 v-if="
-                                    authStore.errors
-                                        .current_password
+                                    authStore.errors.current_password
                                 "
                                 class="field-error"
                             >
@@ -390,7 +450,10 @@ onMounted(loadProfile)
                             </label>
 
                             <div class="input">
-                                <LockKeyhole :size="15" />
+                                <LockKeyhole
+                                    :size="16"
+                                    aria-hidden="true"
+                                />
 
                                 <input
                                     id="new-password"
@@ -401,14 +464,23 @@ onMounted(loadProfile)
                                     autocomplete="new-password"
                                     minlength="8"
                                     required
+                                    :aria-invalid="
+                                        Boolean(
+                                            authStore.errors.password
+                                        )
+                                    "
                                 />
                             </div>
 
                             <span
-                                v-if="authStore.errors.password"
+                                v-if="
+                                    authStore.errors.password
+                                "
                                 class="field-error"
                             >
-                                {{ authStore.errors.password[0] }}
+                                {{
+                                    authStore.errors.password[0]
+                                }}
                             </span>
                         </div>
 
@@ -419,7 +491,10 @@ onMounted(loadProfile)
                             </label>
 
                             <div class="input">
-                                <LockKeyhole :size="15" />
+                                <LockKeyhole
+                                    :size="16"
+                                    aria-hidden="true"
+                                />
 
                                 <input
                                     id="password-confirmation"
@@ -430,6 +505,12 @@ onMounted(loadProfile)
                                     autocomplete="new-password"
                                     minlength="8"
                                     required
+                                    :aria-invalid="
+                                        Boolean(
+                                            authStore.errors
+                                                .password_confirmation
+                                        )
+                                    "
                                 />
                             </div>
 
@@ -451,6 +532,7 @@ onMounted(loadProfile)
                             type="submit"
                             class="save-button"
                             :disabled="authStore.loading"
+                            :aria-busy="authStore.loading"
                         >
                             <span v-if="!authStore.loading">
                                 تغییر رمز عبور
@@ -458,24 +540,28 @@ onMounted(loadProfile)
 
                             <LoaderCircle
                                 v-else
-                                :size="16"
+                                :size="18"
                                 class="loader"
+                                aria-hidden="true"
                             />
 
                             <LockKeyhole
                                 v-if="!authStore.loading"
-                                :size="15"
+                                :size="16"
+                                aria-hidden="true"
                             />
                         </button>
                     </form>
                 </section>
 
             </div>
-     <div>
 
-<MyRequestsSection />
-<MyPurchasedProjectsSection />
-</div>
+            <!-- Requests & Purchased Projects -->
+            <div class="profile-sections">
+                <MyRequestsSection />
+                <MyPurchasedProjectsSection />
+            </div>
+
         </div>
     </main>
 </template>
@@ -506,13 +592,17 @@ onMounted(loadProfile)
 }
 
 .profile-kicker {
+    display: inline-block;
+
     color: var(--orange);
 
     direction: ltr;
 
     font-family: var(--font-mono);
-
-    font-size: 8px;
+    font-size: 10px;
+    font-weight: 600;
+    line-height: 1.7;
+    letter-spacing: 0.03em;
 }
 
 .profile-header h1 {
@@ -521,20 +611,24 @@ onMounted(loadProfile)
     color: var(--text-primary);
 
     font-size: clamp(30px, 4vw, 45px);
-
     font-weight: 900;
+    line-height: 1.35;
+    letter-spacing: -0.025em;
 }
 
 .profile-header p {
-    margin-top: 7px;
+    max-width: 500px;
+
+    margin-top: 8px;
 
     color: var(--text-muted);
 
-    font-size: 11px;
+    font-size: 12px;
+    line-height: 2;
 }
 
 .logout-button {
-    min-height: 40px;
+    min-height: 41px;
 
     display: inline-flex;
     align-items: center;
@@ -550,8 +644,10 @@ onMounted(loadProfile)
 
     background: rgba(255, 92, 92, 0.025);
 
-    font-size: 9px;
+    font-family: inherit;
+    font-size: 11px;
     font-weight: 700;
+    line-height: 1.7;
 
     cursor: pointer;
 
@@ -566,16 +662,22 @@ onMounted(loadProfile)
     background: rgba(255, 92, 92, 0.06);
 }
 
+.logout-button:focus-visible,
+.save-button:focus-visible {
+    outline: 2px solid var(--orange);
+    outline-offset: 4px;
+}
+
 .profile-grid {
     display: grid;
 
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
 
     gap: 14px;
 }
 
 .profile-card {
-    padding: 23px;
+    padding: 24px;
 
     border: 1px solid var(--border);
     border-radius: 14px;
@@ -601,8 +703,8 @@ onMounted(loadProfile)
 }
 
 .card-icon {
-    width: 40px;
-    height: 40px;
+    width: 42px;
+    height: 42px;
 
     display: flex;
     align-items: center;
@@ -621,8 +723,9 @@ onMounted(loadProfile)
 .card-header h2 {
     color: var(--text-primary);
 
-    font-size: 14px;
+    font-size: 15px;
     font-weight: 800;
+    line-height: 1.7;
 }
 
 .card-header p {
@@ -630,14 +733,15 @@ onMounted(loadProfile)
 
     color: var(--text-muted);
 
-    font-size: 8px;
+    font-size: 11px;
+    line-height: 1.8;
 }
 
 .profile-form {
     display: flex;
     flex-direction: column;
 
-    gap: 15px;
+    gap: 16px;
 }
 
 .field {
@@ -650,19 +754,20 @@ onMounted(loadProfile)
 
     color: var(--text-secondary);
 
-    font-size: 9px;
+    font-size: 11px;
     font-weight: 700;
+    line-height: 1.7;
 }
 
 .field label small {
     color: var(--text-muted);
 
-    font-size: 8px;
+    font-size: 10px;
     font-weight: 400;
 }
 
 .input {
-    min-height: 44px;
+    min-height: 46px;
 
     display: flex;
     align-items: center;
@@ -687,10 +792,18 @@ onMounted(loadProfile)
     flex-shrink: 0;
 
     color: #656c72;
+
+    transition: color var(--transition);
+}
+
+.input:focus-within svg {
+    color: var(--orange);
 }
 
 .input input {
     width: 100%;
+
+    min-width: 0;
 
     border: 0;
     outline: 0;
@@ -699,7 +812,9 @@ onMounted(loadProfile)
 
     background: transparent;
 
-    font-size: 10px;
+    font-family: inherit;
+    font-size: 12px;
+    line-height: 1.7;
 }
 
 .input input::placeholder {
@@ -707,15 +822,16 @@ onMounted(loadProfile)
 }
 
 .field-error {
-    margin-top: 5px;
+    margin-top: 6px;
 
     color: var(--danger);
 
-    font-size: 8px;
+    font-size: 10px;
+    line-height: 1.7;
 }
 
 .save-button {
-    min-height: 45px;
+    min-height: 46px;
 
     display: flex;
     align-items: center;
@@ -727,12 +843,15 @@ onMounted(loadProfile)
 
     color: #fff;
 
+    border: 0;
     border-radius: 8px;
 
     background: var(--orange);
 
-    font-size: 10px;
+    font-family: inherit;
+    font-size: 12px;
     font-weight: 800;
+    line-height: 1.7;
 
     cursor: pointer;
 
@@ -756,7 +875,7 @@ onMounted(loadProfile)
 .message {
     margin-bottom: 17px;
 
-    padding: 10px 11px;
+    padding: 11px 12px;
 
     display: flex;
     align-items: center;
@@ -765,7 +884,8 @@ onMounted(loadProfile)
 
     border-radius: 7px;
 
-    font-size: 8px;
+    font-size: 10px;
+    line-height: 1.8;
 }
 
 .message.success {
@@ -782,6 +902,15 @@ onMounted(loadProfile)
     border: 1px solid rgba(255, 92, 92, 0.14);
 
     background: rgba(255, 92, 92, 0.025);
+}
+
+.profile-sections {
+    display: flex;
+    flex-direction: column;
+
+    gap: 14px;
+
+    margin-top: 14px;
 }
 
 .loader {
@@ -808,11 +937,19 @@ onMounted(loadProfile)
     .profile-grid {
         grid-template-columns: 1fr;
     }
+
+    .logout-button {
+        align-self: flex-start;
+    }
 }
 
 @media (max-width: 480px) {
+    .profile-page {
+        padding-bottom: 70px;
+    }
+
     .profile-card {
-        padding: 18px 15px;
+        padding: 19px 16px;
     }
 
     .profile-header h1 {
@@ -821,6 +958,24 @@ onMounted(loadProfile)
 
     .logout-button {
         width: 100%;
+
+        justify-content: center;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .input svg,
+    .logout-button,
+    .save-button {
+        transition: none;
+    }
+
+    .save-button:hover:not(:disabled) {
+        transform: none;
+    }
+
+    .loader {
+        animation: none;
     }
 }
 </style>

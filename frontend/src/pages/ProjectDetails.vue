@@ -17,21 +17,19 @@ import {
 
 import { useAuthStore } from '../stores/auth'
 import { usePaymentsStore } from '../stores/payments'
-import ProjectRequestForm from '../components/projects/ProjectRequestForm.vue'
-import api from '../services/api'
 import { useDownloadsStore } from '../stores/downloads'
+import api from '../services/api'
+import RequestProjectForm from '../components/project/RequestProjectForm.vue'
 
-
-const downloadsStore = useDownloadsStore()
-
-const downloadLoading = ref(false)
 const route = useRoute()
 const router = useRouter()
 
 const authStore = useAuthStore()
 const paymentsStore = usePaymentsStore()
+const downloadsStore = useDownloadsStore()
 
 const project = ref(null)
+
 const loading = ref(true)
 const error = ref(null)
 
@@ -39,45 +37,13 @@ const activeImage = ref(0)
 
 const requestModalOpen = ref(false)
 const paymentLoading = ref(false)
+const downloadLoading = ref(false)
 
 /*
 |--------------------------------------------------------------------------
 | Computed
 |--------------------------------------------------------------------------
 */
-
-
-const downloadProject = async () => {
-    if (!project.value) {
-        return
-    }
-
-    if (!authStore.isAuthenticated) {
-        router.push({
-            name: 'login',
-            query: {
-                redirect: route.fullPath,
-            },
-        })
-
-        return
-    }
-
-    downloadLoading.value = true
-
-    const result =
-        await downloadsStore.downloadProject(
-            project.value.id
-        )
-
-    downloadLoading.value = false
-
-    if (!result.success) {
-        console.error(
-            downloadsStore.error
-        )
-    }
-}
 
 const images = computed(() => {
     return project.value?.images || []
@@ -113,6 +79,7 @@ const projectPrice = computed(() => {
 const fetchProject = async () => {
     loading.value = true
     error.value = null
+    project.value = null
 
     try {
         const response = await api.get(
@@ -197,6 +164,44 @@ const goBack = () => {
         name: 'home',
         hash: '#projects',
     })
+}
+
+/*
+|--------------------------------------------------------------------------
+| Download
+|--------------------------------------------------------------------------
+*/
+
+const downloadProject = async () => {
+    if (!project.value) {
+        return
+    }
+
+    if (!authStore.isAuthenticated) {
+        router.push({
+            name: 'login',
+            query: {
+                redirect: route.fullPath,
+            },
+        })
+
+        return
+    }
+
+    downloadLoading.value = true
+
+    const result =
+        await downloadsStore.downloadProject(
+            project.value.id
+        )
+
+    downloadLoading.value = false
+
+    if (!result.success) {
+        console.error(
+            downloadsStore.error
+        )
+    }
 }
 
 /*
@@ -306,7 +311,10 @@ onMounted(fetchProject)
                     class="back-link"
                     @click="goBack"
                 >
-                    <ArrowRight :size="15" />
+                    <ArrowRight
+                        :size="16"
+                        aria-hidden="true"
+                    />
 
                     <span>
                         بازگشت به نمونه‌کارها
@@ -316,6 +324,7 @@ onMounted(fetchProject)
                 <RouterLink
                     to="/"
                     class="project-logo"
+                    aria-label="Derin Code - صفحه اصلی"
                 >
                     <span>Derin</span><strong>Code</strong>
                 </RouterLink>
@@ -333,10 +342,13 @@ onMounted(fetchProject)
             <div
                 v-if="loading"
                 class="page-state"
+                role="status"
+                aria-live="polite"
             >
                 <LoaderCircle
-                    :size="30"
+                    :size="32"
                     class="loader"
+                    aria-hidden="true"
                 />
 
                 <p>
@@ -348,9 +360,13 @@ onMounted(fetchProject)
             <div
                 v-else-if="error"
                 class="page-state"
+                role="alert"
             >
-                <div class="state-icon">
-                    <ImageIcon :size="27" />
+                <div
+                    class="state-icon"
+                    aria-hidden="true"
+                >
+                    <ImageIcon :size="28" />
                 </div>
 
                 <h1>
@@ -367,31 +383,47 @@ onMounted(fetchProject)
                     class="state-button"
                     @click="goBack"
                 >
-                    <ArrowRight :size="15" />
+                    <ArrowRight
+                        :size="16"
+                        aria-hidden="true"
+                    />
+
                     نمونه‌کارها
                 </button>
             </div>
 
             <!-- Project -->
-            <template
+            <article
                 v-else-if="project"
+                class="project-content"
             >
 
                 <!-- Breadcrumb -->
-                <div class="breadcrumb">
-                    <span>
+                <nav
+                    class="breadcrumb"
+                    aria-label="مسیر صفحه"
+                >
+                    <button
+                        type="button"
+                        @click="goBack"
+                    >
                         نمونه‌کارها
-                    </span>
+                    </button>
 
-                    <span>/</span>
+                    <span aria-hidden="true">
+                        /
+                    </span>
 
                     <strong>
                         {{ project.title }}
                     </strong>
-                </div>
+                </nav>
 
                 <!-- Project Layout -->
-                <section class="project-layout">
+                <section
+                    class="project-layout"
+                    aria-labelledby="project-title"
+                >
 
                     <!-- ================================================= -->
                     <!-- Gallery -->
@@ -406,13 +438,15 @@ onMounted(fetchProject)
                                 :src="currentImage.url"
                                 :alt="
                                     currentImage.alt ||
-                                    project.title
+                                    `تصویر پروژه ${project.title}`
                                 "
+                                fetchpriority="high"
                             />
 
                             <div
                                 v-else
                                 class="image-placeholder"
+                                aria-hidden="true"
                             >
                                 <ImageIcon :size="40" />
 
@@ -432,10 +466,16 @@ onMounted(fetchProject)
                                     aria-label="تصویر بعدی"
                                     @click="nextImage"
                                 >
-                                    <ArrowLeft :size="15" />
+                                    <ArrowLeft
+                                        :size="16"
+                                        aria-hidden="true"
+                                    />
                                 </button>
 
-                                <span>
+                                <span
+                                    aria-live="polite"
+                                    :aria-label="`تصویر ${activeImage + 1} از ${images.length}`"
+                                >
                                     {{ activeImage + 1 }}
                                     /
                                     {{ images.length }}
@@ -446,7 +486,10 @@ onMounted(fetchProject)
                                     aria-label="تصویر قبلی"
                                     @click="previousImage"
                                 >
-                                    <ArrowRight :size="15" />
+                                    <ArrowRight
+                                        :size="16"
+                                        aria-hidden="true"
+                                    />
                                 </button>
                             </div>
 
@@ -456,13 +499,14 @@ onMounted(fetchProject)
                         <div
                             v-if="images.length > 1"
                             class="thumbnails"
+                            aria-label="تصاویر پروژه"
                         >
                             <button
                                 v-for="(
                                     image,
                                     index
                                 ) in images"
-                                :key="image.id"
+                                :key="image.id || index"
                                 type="button"
                                 class="thumbnail"
                                 :class="{
@@ -470,6 +514,12 @@ onMounted(fetchProject)
                                         index ===
                                         activeImage,
                                 }"
+                                :aria-label="`نمایش تصویر ${index + 1}`"
+                                :aria-current="
+                                    index === activeImage
+                                        ? 'true'
+                                        : undefined
+                                "
                                 @click="
                                     selectImage(index)
                                 "
@@ -478,8 +528,10 @@ onMounted(fetchProject)
                                     :src="image.url"
                                     :alt="
                                         image.alt ||
-                                        project.title
+                                        `تصویر ${index + 1} از پروژه ${project.title}`
                                     "
+                                    loading="lazy"
+                                    decoding="async"
                                 />
                             </button>
                         </div>
@@ -493,7 +545,13 @@ onMounted(fetchProject)
                     <div class="project-info">
 
                         <!-- Labels -->
-                        <div class="project-labels">
+                        <div
+                            v-if="
+                                project.is_featured ||
+                                project.status
+                            "
+                            class="project-labels"
+                        >
 
                             <span
                                 v-if="
@@ -508,7 +566,7 @@ onMounted(fetchProject)
                                 v-if="project.status"
                                 class="label status"
                             >
-                                <i></i>
+                                <i aria-hidden="true"></i>
 
                                 {{ project.status }}
                             </span>
@@ -516,7 +574,10 @@ onMounted(fetchProject)
                         </div>
 
                         <!-- Title -->
-                        <h1 class="project-title">
+                        <h1
+                            id="project-title"
+                            class="project-title"
+                        >
                             {{ project.title }}
                         </h1>
 
@@ -530,7 +591,10 @@ onMounted(fetchProject)
                             {{ project.short_description }}
                         </p>
 
-                        <div class="divider"></div>
+                        <div
+                            class="divider"
+                            aria-hidden="true"
+                        ></div>
 
                         <!-- Description -->
                         <div
@@ -550,8 +614,11 @@ onMounted(fetchProject)
                                 "
                                 class="detail"
                             >
-                                <div class="detail-icon">
-                                    <Wallet :size="16" />
+                                <div
+                                    class="detail-icon"
+                                    aria-hidden="true"
+                                >
+                                    <Wallet :size="17" />
                                 </div>
 
                                 <div>
@@ -575,8 +642,11 @@ onMounted(fetchProject)
                                 "
                                 class="detail"
                             >
-                                <div class="detail-icon">
-                                    <Tag :size="16" />
+                                <div
+                                    class="detail-icon"
+                                    aria-hidden="true"
+                                >
+                                    <Tag :size="17" />
                                 </div>
 
                                 <div>
@@ -600,8 +670,13 @@ onMounted(fetchProject)
 
                             <!-- Type -->
                             <div class="detail">
-                                <div class="detail-icon">
-                                    <ExternalLink :size="16" />
+                                <div
+                                    class="detail-icon"
+                                    aria-hidden="true"
+                                >
+                                    <ExternalLink
+                                        :size="17"
+                                    />
                                 </div>
 
                                 <div>
@@ -624,114 +699,152 @@ onMounted(fetchProject)
                         <!-- ================================================= -->
                         <!-- Actions -->
                         <!-- ================================================= -->
-<div class="project-actions">
 
-    <!-- Download -->
-    <button
-        v-if="project.is_purchased"
-        type="button"
-        class="primary-action"
-        :disabled="downloadLoading"
-        @click="downloadProject"
-    >
-        <span v-if="!downloadLoading">
-            دانلود پروژه
-        </span>
+                        <div class="project-actions">
 
-        <span v-else>
-            در حال آماده‌سازی دانلود...
-        </span>
+                            <!-- Download -->
+                            <button
+                                v-if="
+                                    project.is_purchased
+                                "
+                                type="button"
+                                class="primary-action"
+                                :disabled="
+                                    downloadLoading
+                                "
+                                @click="downloadProject"
+                            >
+                                <span
+                                    v-if="
+                                        !downloadLoading
+                                    "
+                                >
+                                    دانلود پروژه
+                                </span>
 
-        <LoaderCircle
-            v-if="downloadLoading"
-            :size="16"
-            class="payment-loader"
-        />
+                                <span v-else>
+                                    در حال آماده‌سازی دانلود...
+                                </span>
 
-        <Download
-            v-else
-            :size="16"
-        />
-    </button>
+                                <LoaderCircle
+                                    v-if="
+                                        downloadLoading
+                                    "
+                                    :size="17"
+                                    class="payment-loader"
+                                    aria-hidden="true"
+                                />
 
-    <!-- Buy -->
-    <button
-        v-else-if="project.is_for_sale"
-        type="button"
-        class="primary-action"
-        :disabled="paymentLoading"
-        @click="buyProject"
-    >
-        <span v-if="!paymentLoading">
-            خرید پروژه
-        </span>
+                                <Download
+                                    v-else
+                                    :size="17"
+                                    aria-hidden="true"
+                                />
+                            </button>
 
-        <span v-else>
-            در حال انتقال به درگاه...
-        </span>
+                            <!-- Buy -->
+                            <button
+                                v-else-if="
+                                    project.is_for_sale
+                                "
+                                type="button"
+                                class="primary-action"
+                                :disabled="
+                                    paymentLoading
+                                "
+                                @click="buyProject"
+                            >
+                                <span
+                                    v-if="
+                                        !paymentLoading
+                                    "
+                                >
+                                    خرید پروژه
+                                </span>
 
-        <LoaderCircle
-            v-if="paymentLoading"
-            :size="16"
-            class="payment-loader"
-        />
+                                <span v-else>
+                                    در حال انتقال به درگاه...
+                                </span>
 
-        <CreditCard
-            v-else
-            :size="16"
-        />
-    </button>
+                                <LoaderCircle
+                                    v-if="
+                                        paymentLoading
+                                    "
+                                    :size="17"
+                                    class="payment-loader"
+                                    aria-hidden="true"
+                                />
 
-    <!-- Request -->
-    <button
-        v-else
-        type="button"
-        class="primary-action"
-        @click="openRequest"
-    >
-        <span>
-            درخواست این پروژه
-        </span>
+                                <CreditCard
+                                    v-else
+                                    :size="17"
+                                    aria-hidden="true"
+                                />
+                            </button>
 
-        <ArrowLeft :size="16" />
-    </button>
+                            <!-- Request -->
+                            <button
+                                v-else
+                                type="button"
+                                class="primary-action"
+                                @click="openRequest"
+                            >
+                                <span>
+                                    درخواست این پروژه
+                                </span>
 
-    <button
-        type="button"
-        class="secondary-action"
-        @click="goBack"
-    >
-        بازگشت
-    </button>
+                                <ArrowLeft
+                                    :size="17"
+                                    aria-hidden="true"
+                                />
+                            </button>
 
-</div>
+                            <button
+                                type="button"
+                                class="secondary-action"
+                                @click="goBack"
+                            >
+                                بازگشت
+                            </button>
+
+                        </div>
 
                         <!-- Note -->
-                       <div class="project-note">
-    <CheckCircle2 :size="15" />
+                        <div class="project-note">
+                            <CheckCircle2
+                                :size="16"
+                                aria-hidden="true"
+                            />
 
-    <span v-if="project.is_purchased">
-        این پروژه قبلاً توسط شما خریداری شده و
-        می‌توانید فایل آن را دانلود کنید.
-    </span>
+                            <span
+                                v-if="
+                                    project.is_purchased
+                                "
+                            >
+                                این پروژه قبلاً توسط شما خریداری شده
+                                و می‌توانید فایل آن را دانلود کنید.
+                            </span>
 
-    <span
-        v-else-if="project.is_for_sale"
-    >
-        با خرید پروژه، فایل قابل دانلود در حساب
-        کاربری شما قرار می‌گیرد.
-    </span>
+                            <span
+                                v-else-if="
+                                    project.is_for_sale
+                                "
+                            >
+                                با خرید پروژه، فایل قابل دانلود
+                                در حساب کاربری شما قرار می‌گیرد.
+                            </span>
 
-    <span v-else>
-        برای دریافت اطلاعات بیشتر یا سفارش نسخه
-        اختصاصی این پروژه با ما در تماس باشید.
-    </span>
-</div>
+                            <span v-else>
+                                برای دریافت اطلاعات بیشتر یا سفارش
+                                نسخه اختصاصی این پروژه با ما در تماس باشید.
+                            </span>
+                        </div>
 
                     </div>
+
                 </section>
 
-            </template>
+            </article>
 
         </main>
 
@@ -746,6 +859,9 @@ onMounted(fetchProject)
                 <div
                     v-if="requestModalOpen"
                     class="request-modal"
+                    role="dialog"
+                    aria-modal="true"
+                    aria-label="درخواست پروژه"
                     @click.self="closeRequest"
                 >
 
@@ -754,18 +870,16 @@ onMounted(fetchProject)
                         <button
                             type="button"
                             class="modal-close"
-                            aria-label="بستن"
+                            aria-label="بستن پنجره درخواست پروژه"
                             @click="closeRequest"
                         >
                             ×
                         </button>
 
-                        <ProjectRequestForm
+                        <RequestProjectForm
                             v-if="project"
                             :project="project"
-                            @success="
-                                handleRequestSuccess
-                            "
+                            @success="handleRequestSuccess"
                             @close="closeRequest"
                         />
 
@@ -781,7 +895,6 @@ onMounted(fetchProject)
 </template>
 
 <style scoped>
-
 /* ================================================================ */
 /* Page */
 /* ================================================================ */
@@ -828,10 +941,16 @@ onMounted(fetchProject)
 .project-logo {
     direction: ltr;
 
+    color: inherit;
+
     font-family: var(--font-mono);
 
-    font-size: 18px;
+    font-size: 19px;
     font-weight: 800;
+
+    line-height: 1;
+
+    text-decoration: none;
 }
 
 .project-logo span {
@@ -843,17 +962,23 @@ onMounted(fetchProject)
 }
 
 .back-link {
+    min-height: 36px;
+
     display: inline-flex;
 
     align-items: center;
 
     gap: 7px;
 
+    padding: 0;
+
     color: var(--text-muted);
 
     background: transparent;
 
-    font-size: 10px;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 500;
 
     cursor: pointer;
 
@@ -874,10 +999,16 @@ onMounted(fetchProject)
     padding-bottom: 90px;
 }
 
+.project-content {
+    min-width: 0;
+}
+
 .breadcrumb {
     display: flex;
 
     align-items: center;
+
+    flex-wrap: wrap;
 
     gap: 8px;
 
@@ -885,11 +1016,34 @@ onMounted(fetchProject)
 
     color: var(--text-muted);
 
-    font-size: 9px;
+    font-size: 11px;
+    line-height: 1.8;
+}
+
+.breadcrumb button {
+    padding: 0;
+
+    color: var(--text-muted);
+
+    background: transparent;
+
+    font-family: inherit;
+    font-size: inherit;
+
+    cursor: pointer;
+
+    transition:
+        color var(--transition);
+}
+
+.breadcrumb button:hover {
+    color: var(--orange);
 }
 
 .breadcrumb strong {
     color: var(--text-secondary);
+
+    font-weight: 600;
 }
 
 /* ================================================================ */
@@ -937,6 +1091,8 @@ onMounted(fetchProject)
     width: 100%;
     height: 100%;
 
+    display: block;
+
     object-fit: cover;
 }
 
@@ -961,7 +1117,8 @@ onMounted(fetchProject)
 .image-placeholder span {
     color: var(--text-muted);
 
-    font-size: 10px;
+    font-size: 11px;
+    line-height: 1.8;
 }
 
 .image-counter {
@@ -989,8 +1146,8 @@ onMounted(fetchProject)
 }
 
 .image-counter button {
-    width: 26px;
-    height: 26px;
+    width: 30px;
+    height: 30px;
 
     display: flex;
 
@@ -1017,7 +1174,7 @@ onMounted(fetchProject)
 }
 
 .image-counter span {
-    min-width: 28px;
+    min-width: 34px;
 
     color: var(--text-secondary);
 
@@ -1027,7 +1184,7 @@ onMounted(fetchProject)
 
     font-family: var(--font-mono);
 
-    font-size: 8px;
+    font-size: 9px;
 }
 
 .thumbnails {
@@ -1043,9 +1200,9 @@ onMounted(fetchProject)
 }
 
 .thumbnail {
-    flex: 0 0 78px;
+    flex: 0 0 82px;
 
-    height: 54px;
+    height: 56px;
 
     padding: 0;
 
@@ -1080,6 +1237,8 @@ onMounted(fetchProject)
     width: 100%;
     height: 100%;
 
+    display: block;
+
     object-fit: cover;
 }
 
@@ -1091,6 +1250,8 @@ onMounted(fetchProject)
     position: sticky;
 
     top: 35px;
+
+    min-width: 0;
 }
 
 .project-labels {
@@ -1104,7 +1265,7 @@ onMounted(fetchProject)
 }
 
 .label {
-    min-height: 23px;
+    min-height: 25px;
 
     display: inline-flex;
 
@@ -1112,13 +1273,13 @@ onMounted(fetchProject)
 
     gap: 6px;
 
-    padding: 0 8px;
+    padding: 0 9px;
 
     border-radius: 5px;
 
-    font-size: 8px;
-
+    font-size: 10px;
     font-weight: 700;
+    line-height: 1.5;
 }
 
 .label.featured {
@@ -1143,6 +1304,8 @@ onMounted(fetchProject)
     width: 5px;
     height: 5px;
 
+    flex-shrink: 0;
+
     border-radius: 50%;
 
     background: var(--success);
@@ -1158,7 +1321,7 @@ onMounted(fetchProject)
 
     font-size: clamp(34px, 4vw, 52px);
 
-    line-height: 1.2;
+    line-height: 1.25;
 
     font-weight: 900;
 
@@ -1170,7 +1333,7 @@ onMounted(fetchProject)
 
     color: var(--text-secondary);
 
-    font-size: 12px;
+    font-size: 13px;
 
     line-height: 2.1;
 }
@@ -1187,7 +1350,7 @@ onMounted(fetchProject)
 .project-description {
     color: #92989d;
 
-    font-size: 12px;
+    font-size: 13px;
 
     line-height: 2.2;
 
@@ -1210,7 +1373,7 @@ onMounted(fetchProject)
 }
 
 .detail {
-    min-height: 62px;
+    min-height: 64px;
 
     display: flex;
 
@@ -1219,6 +1382,8 @@ onMounted(fetchProject)
     gap: 10px;
 
     padding: 10px;
+
+    overflow: hidden;
 
     border: 1px solid var(--border);
 
@@ -1229,8 +1394,8 @@ onMounted(fetchProject)
 }
 
 .detail-icon {
-    width: 33px;
-    height: 33px;
+    width: 35px;
+    height: 35px;
 
     flex-shrink: 0;
 
@@ -1260,7 +1425,8 @@ onMounted(fetchProject)
 .detail span {
     color: var(--text-muted);
 
-    font-size: 7px;
+    font-size: 9px;
+    line-height: 1.6;
 }
 
 .detail strong {
@@ -1270,7 +1436,8 @@ onMounted(fetchProject)
 
     color: var(--text-secondary);
 
-    font-size: 9px;
+    font-size: 10px;
+    font-weight: 700;
 
     text-overflow: ellipsis;
 
@@ -1282,7 +1449,7 @@ onMounted(fetchProject)
 
     color: var(--text-muted);
 
-    font-size: 7px;
+    font-size: 8px;
 }
 
 /* ================================================================ */
@@ -1299,7 +1466,7 @@ onMounted(fetchProject)
 
 .primary-action,
 .secondary-action {
-    min-height: 44px;
+    min-height: 46px;
 
     display: inline-flex;
 
@@ -1308,8 +1475,8 @@ onMounted(fetchProject)
 
     border-radius: 8px;
 
-    font-size: 10px;
-
+    font-family: inherit;
+    font-size: 11px;
     font-weight: 700;
 
     cursor: pointer;
@@ -1326,7 +1493,7 @@ onMounted(fetchProject)
 
     gap: 8px;
 
-    color: white;
+    color: #fff;
 
     background: var(--orange);
 
@@ -1348,17 +1515,8 @@ onMounted(fetchProject)
     transform: none;
 }
 
-.loading-text {
-    font-size: 9px;
-}
-
-.payment-loader {
-    animation:
-        spin 0.8s linear infinite;
-}
-
 .secondary-action {
-    padding-inline: 17px;
+    padding-inline: 18px;
 
     color: var(--text-primary);
 
@@ -1386,7 +1544,7 @@ onMounted(fetchProject)
 
     color: var(--text-muted);
 
-    font-size: 8px;
+    font-size: 10px;
 
     line-height: 1.9;
 }
@@ -1394,7 +1552,7 @@ onMounted(fetchProject)
 .project-note svg {
     flex-shrink: 0;
 
-    margin-top: 2px;
+    margin-top: 3px;
 
     color: var(--orange);
 }
@@ -1428,20 +1586,24 @@ onMounted(fetchProject)
 
     color: var(--text-muted);
 
-    font-size: 10px;
+    font-size: 12px;
+    line-height: 1.8;
 }
 
 .page-state h1 {
+    max-width: 600px;
+
     margin-top: 17px;
 
     color: var(--text-primary);
 
-    font-size: 24px;
+    font-size: 26px;
+    line-height: 1.5;
 }
 
 .state-icon {
-    width: 56px;
-    height: 56px;
+    width: 58px;
+    height: 58px;
 
     display: flex;
 
@@ -1458,11 +1620,11 @@ onMounted(fetchProject)
 }
 
 .state-button {
-    min-height: 40px;
+    min-height: 42px;
 
     margin-top: 18px;
 
-    padding-inline: 15px;
+    padding-inline: 16px;
 
     display: inline-flex;
 
@@ -1478,8 +1640,8 @@ onMounted(fetchProject)
 
     background: transparent;
 
-    font-size: 9px;
-
+    font-family: inherit;
+    font-size: 11px;
     font-weight: 700;
 
     cursor: pointer;
@@ -1545,8 +1707,8 @@ onMounted(fetchProject)
     top: 16px;
     right: 16px;
 
-    width: 30px;
-    height: 30px;
+    width: 32px;
+    height: 32px;
 
     display: flex;
 
@@ -1562,6 +1724,7 @@ onMounted(fetchProject)
     background:
         rgba(5, 6, 7, 0.85);
 
+    font-family: inherit;
     font-size: 20px;
 
     line-height: 1;
@@ -1584,6 +1747,23 @@ onMounted(fetchProject)
 }
 
 /* ================================================================ */
+/* Focus */
+/* ================================================================ */
+
+.back-link:focus-visible,
+.project-logo:focus-visible,
+.breadcrumb button:focus-visible,
+.image-counter button:focus-visible,
+.thumbnail:focus-visible,
+.primary-action:focus-visible,
+.secondary-action:focus-visible,
+.state-button:focus-visible,
+.modal-close:focus-visible {
+    outline: 2px solid var(--orange);
+    outline-offset: 4px;
+}
+
+/* ================================================================ */
 /* Modal Transition */
 /* ================================================================ */
 
@@ -1593,10 +1773,8 @@ onMounted(fetchProject)
         opacity 180ms ease;
 }
 
-.request-modal-enter-active
-.request-modal-inner,
-.request-modal-leave-active
-.request-modal-inner {
+.request-modal-enter-active .request-modal-inner,
+.request-modal-leave-active .request-modal-inner {
     transition:
         transform 180ms ease;
 }
@@ -1606,10 +1784,8 @@ onMounted(fetchProject)
     opacity: 0;
 }
 
-.request-modal-enter-from
-.request-modal-inner,
-.request-modal-leave-to
-.request-modal-inner {
+.request-modal-enter-from .request-modal-inner,
+.request-modal-leave-to .request-modal-inner {
     transform:
         translateY(15px)
         scale(0.98);
@@ -1636,10 +1812,6 @@ onMounted(fetchProject)
 }
 
 @media (max-width: 650px) {
-    .project-page {
-        overflow-x: hidden;
-    }
-
     .project-header {
         padding: 14px 0;
     }
@@ -1690,11 +1862,11 @@ onMounted(fetchProject)
     }
 
     .project-logo {
-        font-size: 16px;
+        font-size: 17px;
     }
 
     .back-link {
-        font-size: 9px;
+        font-size: 10px;
     }
 
     .project-title {
@@ -1703,7 +1875,7 @@ onMounted(fetchProject)
 
     .project-short,
     .project-description {
-        font-size: 11px;
+        font-size: 12px;
     }
 
     .main-image {
@@ -1718,6 +1890,31 @@ onMounted(fetchProject)
 
     .request-modal {
         padding: 8px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .loader {
+        animation: none;
+    }
+
+    .back-link,
+    .project-logo,
+    .breadcrumb button,
+    .image-counter button,
+    .thumbnail,
+    .primary-action,
+    .secondary-action,
+    .state-button,
+    .modal-close {
+        transition: none;
+    }
+
+    .request-modal-enter-active,
+    .request-modal-leave-active,
+    .request-modal-enter-active .request-modal-inner,
+    .request-modal-leave-active .request-modal-inner {
+        transition: none;
     }
 }
 

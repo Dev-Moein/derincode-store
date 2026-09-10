@@ -71,4 +71,9 @@ class User extends Authenticatable
             })
             ->exists();
     }
+    public function permissions()
+{
+    return $this->roles()
+        ->with('permissions');
+}
 }

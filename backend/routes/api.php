@@ -1,6 +1,7 @@
 <?php
 
-use App\Http\Controllers\Api\V1\AdminUserController;
+use App\Http\Controllers\Api\V1\Admin\AdminDashboardController;
+use App\Http\Controllers\Api\V1\Admin\AdminUserController;
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\ContactController;
 use App\Http\Controllers\Api\V1\DashboardController;
@@ -242,7 +243,58 @@ Route::post('/', [
                     ]);
                 });
         });
+        Route::prefix('admin')
+    ->middleware([
+        'auth:sanctum',
+        'permission:dashboard.view',
+    ])
+    ->group(function () {
+        Route::get(
+            '/dashboard',
+            [AdminDashboardController::class, 'index']
+        );
+    });
 
+
+    /*
+|--------------------------------------------------------------------------
+| Admin Users
+|--------------------------------------------------------------------------
+*/
+
+Route::prefix('admin/users')
+    ->middleware([
+        'auth:sanctum',
+        'permission:users.view',
+    ])
+    ->group(function () {
+
+        Route::get('/', [
+            AdminUserController::class,
+            'index',
+        ]);
+
+
+        Route::get('/{id}', [
+            AdminUserController::class,
+            'show',
+        ]);
+
+
+        Route::put('/{id}/role', [
+            AdminUserController::class,
+            'updateRole',
+        ])
+        ->middleware('permission:users.update');
+
+
+        Route::delete('/{id}', [
+            AdminUserController::class,
+            'destroy',
+        ])
+        ->middleware('permission:users.delete');
+
+    });
     /*
     |--------------------------------------------------------------------------
     | Payments
@@ -378,34 +430,6 @@ Route::post('/', [
             DashboardController::class,
             'index',
         ]);
-    });
-/*
-|--------------------------------------------------------------------------
-| Admin Users
-|--------------------------------------------------------------------------
-*/
-
-Route::prefix('admin/users')
-    ->middleware([
-        'auth:sanctum',
-        'permission:users.view',
-    ])
-    ->group(function () {
-
-        Route::get('/', [
-            AdminUserController::class,
-            'index',
-        ]);
-
-        Route::get('/{id}', [
-            AdminUserController::class,
-            'show',
-        ]);
-
-        Route::put('/{id}', [
-            AdminUserController::class,
-            'update',
-        ])->middleware('permission:users.update');
     });
 
 });

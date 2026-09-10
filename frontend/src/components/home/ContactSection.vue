@@ -32,7 +32,6 @@ const resetMessages = () => {
 
 const submitForm = async () => {
     resetMessages()
-
     submitting.value = true
 
     try {
@@ -42,15 +41,16 @@ const submitForm = async () => {
             response?.data?.message ||
             'پیام شما با موفقیت ارسال شد.'
 
-        form.name = ''
-        form.email = ''
-        form.phone = ''
-        form.subject = ''
-        form.message = ''
+        Object.assign(form, {
+            name: '',
+            email: '',
+            phone: '',
+            subject: '',
+            message: '',
+        })
     } catch (error) {
         if (error?.response?.status === 422) {
-            errors.value =
-                error?.response?.data?.errors || {}
+            errors.value = error?.response?.data?.errors || {}
 
             generalError.value =
                 error?.response?.data?.message ||
@@ -70,6 +70,7 @@ const submitForm = async () => {
     <section
         id="contact"
         class="contact-section section"
+        aria-labelledby="contact-title"
     >
         <div class="container">
             <div class="contact-wrapper">
@@ -80,7 +81,10 @@ const submitForm = async () => {
                         تماس با ما
                     </span>
 
-                    <h2 class="contact-title">
+                    <h2
+                        id="contact-title"
+                        class="contact-title"
+                    >
                         بیایید درباره
                         <span>پروژه شما</span>
                         صحبت کنیم.
@@ -94,7 +98,7 @@ const submitForm = async () => {
 
                     <div class="contact-points">
                         <div class="contact-point">
-                            <div class="point-icon">
+                            <div class="point-icon" aria-hidden="true">
                                 <MessageSquare :size="17" />
                             </div>
 
@@ -110,7 +114,7 @@ const submitForm = async () => {
                         </div>
 
                         <div class="contact-point">
-                            <div class="point-icon">
+                            <div class="point-icon" aria-hidden="true">
                                 <CheckCircle2 :size="17" />
                             </div>
 
@@ -131,12 +135,15 @@ const submitForm = async () => {
                 <div class="contact-form-wrapper">
                     <div class="form-header">
                         <div>
-                            <span>Project Inquiry</span>
+                            <span lang="en">Project Inquiry</span>
                             <strong>فرم درخواست همکاری</strong>
                         </div>
 
-                        <div class="form-status">
-                            <i></i>
+                        <div
+                            class="form-status"
+                            aria-label="وضعیت سامانه: آنلاین"
+                        >
+                            <i aria-hidden="true"></i>
                             آنلاین
                         </div>
                     </div>
@@ -145,8 +152,10 @@ const submitForm = async () => {
                     <div
                         v-if="successMessage"
                         class="form-success"
+                        role="status"
+                        aria-live="polite"
                     >
-                        <CheckCircle2 :size="25" />
+                        <CheckCircle2 :size="25" aria-hidden="true" />
 
                         <div>
                             <strong>
@@ -163,6 +172,8 @@ const submitForm = async () => {
                     <div
                         v-if="generalError && !successMessage"
                         class="form-error"
+                        role="alert"
+                        aria-live="assertive"
                     >
                         {{ generalError }}
                     </div>
@@ -170,6 +181,7 @@ const submitForm = async () => {
                     <form
                         class="contact-form"
                         @submit.prevent="submitForm"
+                        novalidate
                     >
                         <div class="form-grid">
 
@@ -180,7 +192,10 @@ const submitForm = async () => {
                                 </label>
 
                                 <div class="input-wrapper">
-                                    <User :size="15" />
+                                    <User
+                                        :size="16"
+                                        aria-hidden="true"
+                                    />
 
                                     <input
                                         id="contact-name"
@@ -188,6 +203,7 @@ const submitForm = async () => {
                                         type="text"
                                         placeholder="مثلاً معین محمودی"
                                         autocomplete="name"
+                                        :aria-invalid="!!errors.name"
                                         :disabled="submitting"
                                     />
                                 </div>
@@ -195,6 +211,7 @@ const submitForm = async () => {
                                 <span
                                     v-if="errors.name"
                                     class="field-error"
+                                    role="alert"
                                 >
                                     {{ errors.name[0] }}
                                 </span>
@@ -207,7 +224,10 @@ const submitForm = async () => {
                                 </label>
 
                                 <div class="input-wrapper">
-                                    <Mail :size="15" />
+                                    <Mail
+                                        :size="16"
+                                        aria-hidden="true"
+                                    />
 
                                     <input
                                         id="contact-email"
@@ -215,6 +235,8 @@ const submitForm = async () => {
                                         type="email"
                                         placeholder="example@email.com"
                                         autocomplete="email"
+                                        dir="ltr"
+                                        :aria-invalid="!!errors.email"
                                         :disabled="submitting"
                                     />
                                 </div>
@@ -222,6 +244,7 @@ const submitForm = async () => {
                                 <span
                                     v-if="errors.email"
                                     class="field-error"
+                                    role="alert"
                                 >
                                     {{ errors.email[0] }}
                                 </span>
@@ -235,7 +258,10 @@ const submitForm = async () => {
                                 </label>
 
                                 <div class="input-wrapper">
-                                    <Phone :size="15" />
+                                    <Phone
+                                        :size="16"
+                                        aria-hidden="true"
+                                    />
 
                                     <input
                                         id="contact-phone"
@@ -243,6 +269,8 @@ const submitForm = async () => {
                                         type="tel"
                                         placeholder="09xxxxxxxxx"
                                         autocomplete="tel"
+                                        dir="ltr"
+                                        :aria-invalid="!!errors.phone"
                                         :disabled="submitting"
                                     />
                                 </div>
@@ -250,6 +278,7 @@ const submitForm = async () => {
                                 <span
                                     v-if="errors.phone"
                                     class="field-error"
+                                    role="alert"
                                 >
                                     {{ errors.phone[0] }}
                                 </span>
@@ -263,13 +292,17 @@ const submitForm = async () => {
                                 </label>
 
                                 <div class="input-wrapper">
-                                    <MessageSquare :size="15" />
+                                    <MessageSquare
+                                        :size="16"
+                                        aria-hidden="true"
+                                    />
 
                                     <input
                                         id="contact-subject"
                                         v-model="form.subject"
                                         type="text"
                                         placeholder="موضوع پروژه"
+                                        :aria-invalid="!!errors.subject"
                                         :disabled="submitting"
                                     />
                                 </div>
@@ -277,6 +310,7 @@ const submitForm = async () => {
                                 <span
                                     v-if="errors.subject"
                                     class="field-error"
+                                    role="alert"
                                 >
                                     {{ errors.subject[0] }}
                                 </span>
@@ -290,16 +324,18 @@ const submitForm = async () => {
                                 توضیحات پروژه
                             </label>
 
-                            <div
-                                class="input-wrapper textarea-wrapper"
-                            >
-                                <MessageSquare :size="15" />
+                            <div class="input-wrapper textarea-wrapper">
+                                <MessageSquare
+                                    :size="16"
+                                    aria-hidden="true"
+                                />
 
                                 <textarea
                                     id="contact-message"
                                     v-model="form.message"
                                     rows="6"
                                     placeholder="کمی درباره پروژه، نیازها و ایده‌تان توضیح دهید..."
+                                    :aria-invalid="!!errors.message"
                                     :disabled="submitting"
                                 ></textarea>
                             </div>
@@ -307,6 +343,7 @@ const submitForm = async () => {
                             <span
                                 v-if="errors.message"
                                 class="field-error"
+                                role="alert"
                             >
                                 {{ errors.message[0] }}
                             </span>
@@ -328,11 +365,13 @@ const submitForm = async () => {
                             <ArrowLeft
                                 v-if="!submitting"
                                 :size="17"
+                                aria-hidden="true"
                             />
 
                             <span
                                 v-else
                                 class="submit-loader"
+                                aria-hidden="true"
                             ></span>
                         </button>
 
@@ -351,10 +390,8 @@ const submitForm = async () => {
 <style scoped>
 .contact-section {
     position: relative;
-
     padding-top: 45px;
     padding-bottom: 110px;
-
     overflow: hidden;
 }
 
@@ -362,7 +399,6 @@ const submitForm = async () => {
     content: "";
 
     position: absolute;
-
     width: 500px;
     height: 500px;
 
@@ -372,7 +408,6 @@ const submitForm = async () => {
     border-radius: 50%;
 
     background: rgba(255, 107, 0, 0.035);
-
     filter: blur(110px);
 
     pointer-events: none;
@@ -383,13 +418,11 @@ const submitForm = async () => {
     z-index: 1;
 
     display: grid;
-
     grid-template-columns:
         minmax(300px, 0.78fr)
         minmax(500px, 1.22fr);
 
     gap: 70px;
-
     align-items: start;
 }
 
@@ -403,20 +436,19 @@ const submitForm = async () => {
     position: relative;
 
     display: inline-block;
-
     padding-bottom: 10px;
 
     color: var(--text-primary);
 
-    font-size: 22px;
-    font-weight: 900;
+    font-size: 21px;
+    font-weight: 800;
+    line-height: 1.6;
 }
 
 .section-kicker::after {
     content: "";
 
     position: absolute;
-
     right: 0;
     bottom: 0;
 
@@ -424,23 +456,20 @@ const submitForm = async () => {
     height: 3px;
 
     border-radius: 99px;
-
     background: var(--orange);
 }
 
 .contact-title {
     max-width: 460px;
-
-    margin-top: 22px;
+    margin-top: 20px;
 
     color: var(--text-primary);
 
-    font-size: clamp(35px, 4.2vw, 52px);
-    line-height: 1.23;
+    font-size: clamp(34px, 4.2vw, 52px);
+    font-weight: 850;
+    line-height: 1.35;
 
-    font-weight: 900;
-
-    letter-spacing: -0.045em;
+    letter-spacing: -0.035em;
 }
 
 .contact-title span {
@@ -449,19 +478,18 @@ const submitForm = async () => {
 
 .contact-description {
     max-width: 440px;
-
-    margin-top: 19px;
+    margin-top: 20px;
 
     color: var(--text-secondary);
 
-    font-size: 12px;
-    line-height: 2.2;
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 2.15;
 }
 
 .contact-points {
     display: flex;
     flex-direction: column;
-
     gap: 18px;
 
     margin-top: 35px;
@@ -470,7 +498,6 @@ const submitForm = async () => {
 .contact-point {
     display: flex;
     align-items: center;
-
     gap: 12px;
 }
 
@@ -495,20 +522,22 @@ const submitForm = async () => {
 .contact-point div:last-child {
     display: flex;
     flex-direction: column;
-
-    gap: 2px;
+    gap: 3px;
 }
 
 .contact-point strong {
     color: var(--text-primary);
 
-    font-size: 10px;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1.7;
 }
 
 .contact-point span {
     color: var(--text-muted);
 
-    font-size: 9px;
+    font-size: 11px;
+    line-height: 1.8;
 }
 
 /* Form */
@@ -532,7 +561,6 @@ const submitForm = async () => {
 
 .form-header {
     min-height: 66px;
-
     padding: 0 20px;
 
     display: flex;
@@ -540,7 +568,6 @@ const submitForm = async () => {
     justify-content: space-between;
 
     border-bottom: 1px solid var(--border);
-
     background: rgba(255, 255, 255, 0.012);
 }
 
@@ -553,10 +580,10 @@ const submitForm = async () => {
     color: var(--text-muted);
 
     direction: ltr;
-
     font-family: var(--font-mono);
 
-    font-size: 8px;
+    font-size: 9px;
+    line-height: 1.5;
 }
 
 .form-header strong {
@@ -564,7 +591,9 @@ const submitForm = async () => {
 
     color: var(--text-primary);
 
-    font-size: 12px;
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1.7;
 }
 
 .form-status {
@@ -577,18 +606,17 @@ const submitForm = async () => {
     color: var(--success) !important;
 
     direction: rtl !important;
+    font-family: inherit !important;
 
-    font-family: var(--font-sans) !important;
-
-    font-size: 8px !important;
+    font-size: 10px !important;
+    font-weight: 600;
 }
 
 .form-status i {
-    width: 5px;
-    height: 5px;
+    width: 6px;
+    height: 6px;
 
     border-radius: 50%;
-
     background: var(--success);
 
     box-shadow:
@@ -596,15 +624,13 @@ const submitForm = async () => {
 }
 
 .contact-form {
-    padding: 22px 20px 18px;
+    padding: 24px 20px 19px;
 }
 
 .form-grid {
     display: grid;
-
     grid-template-columns: 1fr 1fr;
-
-    gap: 16px;
+    gap: 18px;
 }
 
 .field {
@@ -613,34 +639,34 @@ const submitForm = async () => {
 }
 
 .field-full {
-    margin-top: 16px;
+    margin-top: 18px;
 }
 
 .field label {
-    margin-bottom: 7px;
+    margin-bottom: 8px;
 
     color: #d4d7da;
 
-    font-size: 9px;
-    font-weight: 700;
+    font-size: 11px;
+    font-weight: 650;
+    line-height: 1.7;
 }
 
 .field label small {
     color: var(--text-muted);
 
-    font-size: 8px;
+    font-size: 10px;
     font-weight: 400;
 }
 
 .input-wrapper {
-    min-height: 43px;
+    min-height: 45px;
 
     display: flex;
     align-items: center;
+    gap: 10px;
 
-    gap: 9px;
-
-    padding: 0 11px;
+    padding: 0 12px;
 
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 8px;
@@ -664,7 +690,6 @@ const submitForm = async () => {
 
 .input-wrapper svg {
     flex-shrink: 0;
-
     color: #62696f;
 }
 
@@ -676,10 +701,12 @@ const submitForm = async () => {
     outline: 0;
 
     color: var(--text-primary);
-
     background: transparent;
 
-    font-size: 10px;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 1.8;
 }
 
 .input-wrapper input::placeholder,
@@ -689,47 +716,43 @@ const submitForm = async () => {
 
 .textarea-wrapper {
     align-items: flex-start;
-
-    padding-top: 11px;
+    padding-top: 12px;
 }
 
 .textarea-wrapper svg {
-    margin-top: 2px;
+    margin-top: 3px;
 }
 
 .input-wrapper textarea {
     min-height: 120px;
 
     resize: vertical;
-
     line-height: 2;
 }
 
 .field-error {
-    margin-top: 5px;
+    margin-top: 6px;
 
     color: var(--danger);
 
-    font-size: 8px;
+    font-size: 10px;
+    line-height: 1.7;
 }
 
 .submit-button {
     width: 100%;
+    min-height: 47px;
 
-    min-height: 46px;
-
-    margin-top: 19px;
+    margin-top: 20px;
 
     display: flex;
     align-items: center;
     justify-content: center;
-
     gap: 9px;
 
     border-radius: 8px;
 
     color: #ffffff;
-
     background:
         linear-gradient(
             135deg,
@@ -737,8 +760,9 @@ const submitForm = async () => {
             #ff5f00
         );
 
-    font-size: 11px;
-    font-weight: 800;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 750;
 
     cursor: pointer;
 
@@ -760,7 +784,6 @@ const submitForm = async () => {
 
 .submit-button:disabled {
     opacity: 0.72;
-
     cursor: not-allowed;
 }
 
@@ -777,13 +800,14 @@ const submitForm = async () => {
 }
 
 .form-note {
-    margin-top: 10px;
+    margin-top: 11px;
 
     color: var(--text-muted);
 
     text-align: center;
 
-    font-size: 7px;
+    font-size: 9px;
+    line-height: 1.8;
 }
 
 .form-success {
@@ -792,14 +816,12 @@ const submitForm = async () => {
 
     display: flex;
     align-items: flex-start;
-
     gap: 10px;
 
     border: 1px solid rgba(55, 214, 122, 0.14);
     border-radius: 8px;
 
     color: var(--success);
-
     background: rgba(55, 214, 122, 0.03);
 }
 
@@ -809,7 +831,8 @@ const submitForm = async () => {
 }
 
 .form-success strong {
-    font-size: 10px;
+    font-size: 11px;
+    line-height: 1.7;
 }
 
 .form-success span {
@@ -817,7 +840,8 @@ const submitForm = async () => {
 
     color: var(--text-muted);
 
-    font-size: 8px;
+    font-size: 10px;
+    line-height: 1.8;
 }
 
 .form-error {
@@ -831,7 +855,8 @@ const submitForm = async () => {
 
     background: rgba(255, 92, 92, 0.025);
 
-    font-size: 8px;
+    font-size: 10px;
+    line-height: 1.8;
 }
 
 @keyframes spin {
@@ -849,8 +874,8 @@ const submitForm = async () => {
     }
 
     .contact-intro {
-        text-align: center;
         padding-top: 0;
+        text-align: center;
     }
 
     .section-kicker::after {
@@ -881,7 +906,8 @@ const submitForm = async () => {
     }
 
     .contact-description {
-        font-size: 11px;
+        font-size: 12px;
+        line-height: 2.1;
     }
 
     .form-grid {
@@ -889,11 +915,11 @@ const submitForm = async () => {
     }
 
     .field-full {
-        margin-top: 15px;
+        margin-top: 16px;
     }
 
     .contact-form {
-        padding: 18px 13px 15px;
+        padding: 20px 13px 16px;
     }
 
     .form-header {
@@ -901,12 +927,12 @@ const submitForm = async () => {
     }
 
     .form-header strong {
-        font-size: 11px;
+        font-size: 12px;
     }
 
     .input-wrapper input,
     .input-wrapper textarea {
-        font-size: 11px;
+        font-size: 12px;
     }
 
     .input-wrapper textarea {

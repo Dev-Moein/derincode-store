@@ -8,7 +8,6 @@ import {
     Wallet,
 } from 'lucide-vue-next'
 
-import { useAuthStore } from '../../stores/auth'
 import { useProjectRequestsStore } from '../../stores/projectRequests'
 
 const props = defineProps({
@@ -23,11 +22,10 @@ const emit = defineEmits([
     'close',
 ])
 
-const authStore = useAuthStore()
 const requestsStore = useProjectRequestsStore()
 
 const form = reactive({
-    title: props.project.title || '',
+    title: props.project?.title || '',
     description: '',
     budget: '',
     currency: 'IRR',
@@ -37,16 +35,22 @@ const success = ref(false)
 const successMessage = ref('')
 
 const submit = async () => {
-    const result =
-        await requestsStore.createRequest({
-            title: form.title,
-            description: form.description,
-            budget:
-                form.budget === ''
-                    ? null
-                    : Number(form.budget),
-            currency: form.currency,
-        })
+    requestsStore.clearErrors()
+
+    const title = form.title.trim()
+    const description = form.description.trim()
+
+    const budget =
+        form.budget === ''
+            ? null
+            : Number(form.budget)
+
+    const result = await requestsStore.createRequest({
+        title,
+        description,
+        budget,
+        currency: form.currency,
+    })
 
     if (!result.success) {
         return
@@ -54,41 +58,51 @@ const submit = async () => {
 
     success.value = true
     successMessage.value =
-        result.message
+        result.message ||
+        'درخواست پروژه شما با موفقیت ثبت شد.'
 
     emit('success', result.request)
 }
 </script>
 
 <template>
-    <div class="request-form">
-
-        <div class="form-heading">
-            <div class="heading-icon">
+    <div
+        class="request-form"
+        aria-labelledby="project-request-title"
+    >
+        <header class="form-heading">
+            <div
+                class="heading-icon"
+                aria-hidden="true"
+            >
                 <FileText :size="19" />
             </div>
 
             <div>
-                <span>
-                    PROJECT REQUEST
-                </span>
+                <span>PROJECT REQUEST</span>
 
-                <h3>
+                <h3 id="project-request-title">
                     درخواست پروژه
                 </h3>
             </div>
-        </div>
+        </header>
 
         <!-- Success -->
-        <div
+        <section
             v-if="success"
             class="success-state"
+            role="status"
+            aria-live="polite"
+            aria-labelledby="request-success-title"
         >
-            <div class="success-icon">
+            <div
+                class="success-icon"
+                aria-hidden="true"
+            >
                 <CheckCircle2 :size="30" />
             </div>
 
-            <h3>
+            <h3 id="request-success-title">
                 درخواست شما ثبت شد
             </h3>
 
@@ -103,17 +117,20 @@ const submit = async () => {
             >
                 بازگشت
             </button>
-        </div>
+        </section>
 
         <!-- Form -->
         <form
             v-else
             @submit.prevent="submit"
         >
-            <!-- Error -->
+            <!-- General Error -->
             <div
                 v-if="requestsStore.error"
+                id="request-general-error"
                 class="general-error"
+                role="alert"
+                aria-live="assertive"
             >
                 {{ requestsStore.error }}
             </div>
@@ -129,11 +146,21 @@ const submit = async () => {
                     v-model="form.title"
                     type="text"
                     maxlength="255"
+                    autocomplete="off"
                     required
+                    :aria-invalid="
+                        !!requestsStore.errors.title
+                    "
+                    :aria-describedby="
+                        requestsStore.errors.title
+                            ? 'request-title-error'
+                            : undefined
+                    "
                 />
 
                 <span
                     v-if="requestsStore.errors.title"
+                    id="request-title-error"
                     class="field-error"
                 >
                     {{ requestsStore.errors.title[0] }}
@@ -153,17 +180,22 @@ const submit = async () => {
                     maxlength="10000"
                     placeholder="نیازها، امکانات و توضیحات پروژه را بنویسید..."
                     required
+                    :aria-invalid="
+                        !!requestsStore.errors.description
+                    "
+                    :aria-describedby="
+                        requestsStore.errors.description
+                            ? 'request-description-error'
+                            : undefined
+                    "
                 ></textarea>
 
                 <span
-                    v-if="
-                        requestsStore.errors.description
-                    "
+                    v-if="requestsStore.errors.description"
+                    id="request-description-error"
                     class="field-error"
                 >
-                    {{
-                        requestsStore.errors.description[0]
-                    }}
+                    {{ requestsStore.errors.description[0] }}
                 </span>
             </div>
 
@@ -176,7 +208,10 @@ const submit = async () => {
                     </label>
 
                     <div class="input-with-icon">
-                        <Wallet :size="15" />
+                        <Wallet
+                            :size="15"
+                            aria-hidden="true"
+                        />
 
                         <input
                             id="request-budget"
@@ -184,18 +219,30 @@ const submit = async () => {
                             type="number"
                             min="0"
                             step="0.01"
+                            inputmode="decimal"
+                            dir="ltr"
                             placeholder="مثلاً 50000000"
+                            :aria-invalid="
+                                !!requestsStore.errors.budget
+                            "
+                            :aria-describedby="
+                                requestsStore.errors.budget
+                                    ? 'request-budget-error'
+                                    : undefined
+                            "
                         />
                     </div>
 
                     <span
                         v-if="requestsStore.errors.budget"
+                        id="request-budget-error"
                         class="field-error"
                     >
                         {{ requestsStore.errors.budget[0] }}
                     </span>
                 </div>
 
+                <!-- Currency -->
                 <div class="field">
                     <label for="request-currency">
                         واحد پول
@@ -205,6 +252,14 @@ const submit = async () => {
                         id="request-currency"
                         v-model="form.currency"
                         required
+                        :aria-invalid="
+                            !!requestsStore.errors.currency
+                        "
+                        :aria-describedby="
+                            requestsStore.errors.currency
+                                ? 'request-currency-error'
+                                : undefined
+                        "
                     >
                         <option value="IRR">
                             IRR
@@ -221,6 +276,7 @@ const submit = async () => {
 
                     <span
                         v-if="requestsStore.errors.currency"
+                        id="request-currency-error"
                         class="field-error"
                     >
                         {{ requestsStore.errors.currency[0] }}
@@ -228,11 +284,13 @@ const submit = async () => {
                 </div>
             </div>
 
+            <!-- Footer -->
             <div class="form-footer">
                 <button
                     type="submit"
                     class="submit-button"
                     :disabled="requestsStore.loading"
+                    :aria-busy="requestsStore.loading"
                 >
                     <span v-if="!requestsStore.loading">
                         ثبت درخواست
@@ -242,17 +300,20 @@ const submit = async () => {
                         v-else
                         :size="16"
                         class="loader"
+                        aria-hidden="true"
                     />
 
                     <ArrowLeft
                         v-if="!requestsStore.loading"
                         :size="16"
+                        aria-hidden="true"
                     />
                 </button>
 
                 <button
                     type="button"
                     class="cancel-button"
+                    :disabled="requestsStore.loading"
                     @click="emit('close')"
                 >
                     انصراف
@@ -299,6 +360,8 @@ const submit = async () => {
     align-items: center;
     justify-content: center;
 
+    flex-shrink: 0;
+
     color: var(--orange);
 
     border: 1px solid rgba(255, 107, 0, 0.18);
@@ -319,15 +382,21 @@ const submit = async () => {
 
     font-family: var(--font-mono);
 
-    font-size: 7px;
+    font-size: 9px;
+    font-weight: 600;
+
+    letter-spacing: 0.04em;
 }
 
 .form-heading h3 {
-    margin-top: 2px;
+    margin-top: 3px;
 
     color: var(--text-primary);
 
-    font-size: 14px;
+    font-family: inherit;
+
+    font-size: 16px;
+    font-weight: 750;
 }
 
 /* Fields */
@@ -344,14 +413,16 @@ const submit = async () => {
 
     color: var(--text-secondary);
 
-    font-size: 9px;
+    font-family: inherit;
+
+    font-size: 11px;
     font-weight: 700;
 }
 
 .field label small {
     color: var(--text-muted);
 
-    font-size: 8px;
+    font-size: 10px;
     font-weight: 400;
 }
 
@@ -369,7 +440,8 @@ const submit = async () => {
 
     background: rgba(0, 0, 0, 0.2);
 
-    font-size: 10px;
+    font-family: inherit;
+    font-size: 12px;
 
     transition: border-color var(--transition);
 }
@@ -397,6 +469,18 @@ const submit = async () => {
     border-color: var(--border-orange);
 }
 
+.field input:focus-visible,
+.field textarea:focus-visible,
+.field select:focus-visible {
+    box-shadow: 0 0 0 3px rgba(255, 107, 0, 0.08);
+}
+
+.field input[aria-invalid='true'],
+.field textarea[aria-invalid='true'],
+.field select[aria-invalid='true'] {
+    border-color: var(--danger);
+}
+
 .field input::placeholder,
 .field textarea::placeholder {
     color: #555c62;
@@ -404,6 +488,7 @@ const submit = async () => {
 
 .field select option {
     color: #fff;
+
     background: #0b0d0f;
 }
 
@@ -429,7 +514,13 @@ const submit = async () => {
     border-color: var(--border-orange);
 }
 
+.input-with-icon:has(input[aria-invalid='true']) {
+    border-color: var(--danger);
+}
+
 .input-with-icon svg {
+    flex-shrink: 0;
+
     color: #656c72;
 }
 
@@ -441,6 +532,11 @@ const submit = async () => {
     border: 0;
 
     background: transparent;
+}
+
+.input-with-icon input:focus,
+.input-with-icon input:focus-visible {
+    box-shadow: none;
 }
 
 .budget-row {
@@ -456,7 +552,10 @@ const submit = async () => {
 
     color: var(--danger);
 
-    font-size: 8px;
+    font-family: inherit;
+
+    font-size: 10px;
+    line-height: 1.6;
 }
 
 .general-error {
@@ -471,7 +570,10 @@ const submit = async () => {
 
     background: rgba(255, 92, 92, 0.025);
 
-    font-size: 8px;
+    font-family: inherit;
+
+    font-size: 10px;
+    line-height: 1.7;
 }
 
 /* Footer */
@@ -497,7 +599,9 @@ const submit = async () => {
 
     border-radius: 8px;
 
-    font-size: 10px;
+    font-family: inherit;
+
+    font-size: 12px;
     font-weight: 700;
 
     cursor: pointer;
@@ -521,10 +625,19 @@ const submit = async () => {
     transform: translateY(-2px);
 }
 
-.submit-button:disabled {
+.submit-button:disabled,
+.cancel-button:disabled {
     opacity: 0.7;
 
     cursor: wait;
+}
+
+.submit-button:focus-visible,
+.cancel-button:focus-visible,
+.close-button:focus-visible {
+    outline: 2px solid var(--orange);
+
+    outline-offset: 3px;
 }
 
 .cancel-button {
@@ -535,10 +648,16 @@ const submit = async () => {
     border: 1px solid var(--border);
 
     background: transparent;
+
+    transition:
+        border-color var(--transition),
+        background var(--transition);
 }
 
-.cancel-button:hover {
+.cancel-button:hover:not(:disabled) {
     border-color: var(--border-orange);
+
+    background: rgba(255, 107, 0, 0.03);
 }
 
 .loader {
@@ -580,15 +699,23 @@ const submit = async () => {
 
     color: var(--text-primary);
 
-    font-size: 17px;
+    font-family: inherit;
+
+    font-size: 19px;
+    font-weight: 750;
 }
 
 .success-state p {
-    margin-top: 7px;
+    max-width: 430px;
+
+    margin-top: 8px;
 
     color: var(--text-muted);
 
-    font-size: 10px;
+    font-family: inherit;
+
+    font-size: 11px;
+    line-height: 1.8;
 }
 
 .close-button {
@@ -599,11 +726,36 @@ const submit = async () => {
     color: #fff;
 
     background: var(--orange);
+
+    transition:
+        background var(--transition),
+        transform var(--transition);
+}
+
+.close-button:hover {
+    background: var(--orange-light);
+
+    transform: translateY(-2px);
 }
 
 @keyframes spin {
     to {
         transform: rotate(360deg);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .submit-button,
+    .cancel-button,
+    .close-button,
+    .loader {
+        transition: none;
+        animation: none;
+    }
+
+    .submit-button:hover:not(:disabled),
+    .close-button:hover {
+        transform: none;
     }
 }
 

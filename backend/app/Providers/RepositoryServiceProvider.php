@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Contracts\Notifications\OtpNotificationInterface;
+use App\Contracts\Repositories\AdminDashboardRepositoryInterface;
 use App\Contracts\Repositories\ContactRepositoryInterface;
 use App\Contracts\Repositories\DownloadRepositoryInterface;
 use App\Contracts\Repositories\PaymentRepositoryInterface;
@@ -10,6 +11,8 @@ use App\Contracts\Repositories\ProjectImageRepositoryInterface;
 use App\Contracts\Repositories\ProjectRepositoryInterface;
 use App\Contracts\Repositories\ProjectRequestRepositoryInterface;
 use App\Contracts\Repositories\UserRepositoryInterface;
+use App\Contracts\Services\AdminDashboardServiceInterface;
+use App\Contracts\Services\AdminUserServiceInterface;
 use App\Contracts\Services\AuthServiceInterface;
 use App\Contracts\Services\ContactServiceInterface;
 use App\Contracts\Services\DownloadServiceInterface;
@@ -21,6 +24,7 @@ use App\Contracts\Services\ProjectImageServiceInterface;
 use App\Contracts\Services\ProjectRequestServiceInterface;
 use App\Contracts\Services\ProjectServiceInterface;
 use App\Notifications\Otp\EmailOtpNotification;
+use App\Repositories\AdminDashboardRepository;
 use App\Repositories\ContactRepository;
 use App\Repositories\DownloadRepository;
 use App\Repositories\PaymentRepository;
@@ -28,6 +32,8 @@ use App\Repositories\ProjectImageRepository;
 use App\Repositories\ProjectRepository;
 use App\Repositories\ProjectRequestRepository;
 use App\Repositories\UserRepository;
+use App\Services\AdminDashboardService;
+use App\Services\AdminUserService;
 use App\Services\AuthService;
 use App\Services\ContactService;
 use App\Services\DownloadService;
@@ -156,6 +162,19 @@ class RepositoryServiceProvider extends ServiceProvider
          ContactServiceInterface::class,
           ContactService::class,
           );
+          $this->app->bind(
+    AdminDashboardRepositoryInterface::class,
+    AdminDashboardRepository::class
+);
+
+$this->app->bind(
+    AdminDashboardServiceInterface::class,
+    AdminDashboardService::class
+);
+$this->app->bind(
+    AdminUserServiceInterface::class,
+    AdminUserService::class
+);
     }
 
     /**

@@ -23,9 +23,7 @@ const submit = async () => {
     localError.value = ''
     successMessage.value = ''
 
-    const result = await authStore.forgotPassword(
-        form.email
-    )
+    const result = await authStore.forgotPassword(form.email)
 
     if (!result.success) {
         localError.value =
@@ -46,33 +44,41 @@ const submit = async () => {
 </script>
 
 <template>
-    <main class="auth-page">
+    <main
+        class="auth-page"
+        aria-labelledby="forgot-password-title"
+    >
         <div class="auth-container">
 
             <RouterLink
                 to="/"
                 class="auth-logo"
+                aria-label="Derin Code - صفحه اصلی"
             >
                 <span>Derin</span><strong>Code</strong>
             </RouterLink>
 
-            <div class="auth-card">
+            <section class="auth-card">
 
                 <button
                     type="button"
                     class="back-link"
                     @click="router.push({ name: 'login' })"
                 >
-                    <ArrowLeft :size="14" />
-                    بازگشت به ورود
+                    <ArrowLeft
+                        :size="15"
+                        aria-hidden="true"
+                    />
+
+                    <span>بازگشت به ورود</span>
                 </button>
 
-                <div class="auth-header">
+                <header class="auth-header">
                     <span class="auth-kicker">
                         PASSWORD RECOVERY
                     </span>
 
-                    <h1>
+                    <h1 id="forgot-password-title">
                         فراموشی رمز عبور
                     </h1>
 
@@ -80,11 +86,13 @@ const submit = async () => {
                         ایمیل حساب خود را وارد کنید تا کد تأیید
                         برای شما ارسال شود.
                     </p>
-                </div>
+                </header>
 
                 <div
                     v-if="localError"
                     class="message message-error"
+                    role="alert"
+                    aria-live="assertive"
                 >
                     {{ localError }}
                 </div>
@@ -92,6 +100,8 @@ const submit = async () => {
                 <div
                     v-if="successMessage"
                     class="message message-success"
+                    role="status"
+                    aria-live="polite"
                 >
                     {{ successMessage }}
                 </div>
@@ -106,14 +116,22 @@ const submit = async () => {
                         </label>
 
                         <div class="input">
-                            <Mail :size="16" />
+                            <Mail
+                                :size="17"
+                                aria-hidden="true"
+                            />
 
                             <input
                                 id="email"
                                 v-model="form.email"
                                 type="email"
                                 autocomplete="email"
+                                inputmode="email"
+                                dir="ltr"
                                 placeholder="example@email.com"
+                                :aria-invalid="
+                                    Boolean(authStore.errors.email)
+                                "
                                 required
                             />
                         </div>
@@ -130,6 +148,7 @@ const submit = async () => {
                         type="submit"
                         class="submit-button"
                         :disabled="authStore.loading"
+                        :aria-busy="authStore.loading"
                     >
                         <span v-if="!authStore.loading">
                             ارسال کد
@@ -137,17 +156,20 @@ const submit = async () => {
 
                         <LoaderCircle
                             v-else
-                            :size="17"
+                            :size="18"
                             class="loader"
+                            aria-hidden="true"
                         />
 
                         <ArrowLeft
                             v-if="!authStore.loading"
-                            :size="16"
+                            :size="17"
+                            aria-hidden="true"
                         />
                     </button>
                 </form>
-            </div>
+
+            </section>
         </div>
     </main>
 </template>
@@ -181,13 +203,17 @@ const submit = async () => {
 
     display: block;
 
-    margin: 0 auto 22px;
+    margin: 0 auto 24px;
 
     direction: ltr;
 
+    color: inherit;
     font-family: var(--font-mono);
-    font-size: 20px;
+    font-size: 22px;
     font-weight: 800;
+    line-height: 1;
+
+    text-decoration: none;
 }
 
 .auth-logo span {
@@ -198,8 +224,14 @@ const submit = async () => {
     color: var(--orange);
 }
 
+.auth-logo:focus-visible {
+    outline: 2px solid var(--orange);
+    outline-offset: 6px;
+    border-radius: 4px;
+}
+
 .auth-card {
-    padding: 27px 28px;
+    padding: 28px;
 
     border: 1px solid var(--border);
     border-radius: 16px;
@@ -218,13 +250,18 @@ const submit = async () => {
 .back-link {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
+    gap: 7px;
+
+    padding: 3px 0;
 
     color: var(--text-muted);
 
     background: transparent;
 
-    font-size: 9px;
+    font-family: inherit;
+    font-size: 11px;
+    font-weight: 500;
+    line-height: 1.7;
 
     cursor: pointer;
 
@@ -235,19 +272,29 @@ const submit = async () => {
     color: var(--orange);
 }
 
+.back-link:focus-visible {
+    outline: 2px solid var(--orange);
+    outline-offset: 5px;
+    border-radius: 4px;
+}
+
 .auth-header {
-    margin-top: 22px;
-    margin-bottom: 24px;
+    margin-top: 23px;
+    margin-bottom: 25px;
 }
 
 .auth-kicker {
+    display: inline-block;
+
     color: var(--orange);
 
     direction: ltr;
 
     font-family: var(--font-mono);
-
-    font-size: 8px;
+    font-size: 10px;
+    font-weight: 600;
+    line-height: 1.7;
+    letter-spacing: 0.03em;
 }
 
 .auth-header h1 {
@@ -255,23 +302,27 @@ const submit = async () => {
 
     color: var(--text-primary);
 
-    font-size: 27px;
+    font-size: 28px;
     font-weight: 900;
+    line-height: 1.45;
+    letter-spacing: -0.02em;
 }
 
 .auth-header p {
-    margin-top: 7px;
+    max-width: 350px;
+
+    margin-top: 8px;
 
     color: var(--text-muted);
 
-    font-size: 10px;
-    line-height: 1.9;
+    font-size: 12px;
+    line-height: 2;
 }
 
 .auth-form {
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 17px;
 }
 
 .field {
@@ -284,18 +335,19 @@ const submit = async () => {
 
     color: var(--text-secondary);
 
-    font-size: 9px;
+    font-size: 11px;
     font-weight: 700;
+    line-height: 1.7;
 }
 
 .input {
-    min-height: 45px;
+    min-height: 47px;
 
     display: flex;
     align-items: center;
-    gap: 9px;
+    gap: 10px;
 
-    padding-inline: 11px;
+    padding-inline: 12px;
 
     border: 1px solid var(--border);
     border-radius: 8px;
@@ -310,6 +362,7 @@ const submit = async () => {
 }
 
 .input svg {
+    flex-shrink: 0;
     color: #646b71;
 }
 
@@ -323,23 +376,30 @@ const submit = async () => {
 
     background: transparent;
 
-    font-size: 10px;
+    font-family: inherit;
+    font-size: 12px;
+    line-height: 1.7;
 }
 
 .input input::placeholder {
     color: #555c62;
 }
 
+.input:focus-within svg {
+    color: var(--orange);
+}
+
 .field-error {
-    margin-top: 5px;
+    margin-top: 6px;
 
     color: var(--danger);
 
-    font-size: 8px;
+    font-size: 10px;
+    line-height: 1.7;
 }
 
 .submit-button {
-    min-height: 46px;
+    min-height: 47px;
 
     display: flex;
     align-items: center;
@@ -348,12 +408,15 @@ const submit = async () => {
 
     color: #fff;
 
+    border: 0;
     border-radius: 8px;
 
     background: var(--orange);
 
-    font-size: 10px;
+    font-family: inherit;
+    font-size: 12px;
     font-weight: 800;
+    line-height: 1.7;
 
     cursor: pointer;
 
@@ -367,19 +430,25 @@ const submit = async () => {
     transform: translateY(-2px);
 }
 
+.submit-button:focus-visible {
+    outline: 2px solid var(--orange);
+    outline-offset: 4px;
+}
+
 .submit-button:disabled {
     opacity: 0.7;
     cursor: wait;
 }
 
 .message {
-    margin-bottom: 15px;
+    margin-bottom: 16px;
 
-    padding: 10px 11px;
+    padding: 11px 12px;
 
     border-radius: 7px;
 
-    font-size: 8px;
+    font-size: 10px;
+    line-height: 1.8;
 }
 
 .message-error {
@@ -407,8 +476,32 @@ const submit = async () => {
 }
 
 @media (max-width: 480px) {
+    .auth-page {
+        padding: 28px 16px;
+    }
+
     .auth-card {
-        padding: 22px 18px;
+        padding: 23px 18px;
+    }
+
+    .auth-header h1 {
+        font-size: 25px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .loader {
+        animation: none;
+    }
+
+    .back-link,
+    .input,
+    .submit-button {
+        transition: none;
+    }
+
+    .submit-button:hover:not(:disabled) {
+        transform: none;
     }
 }
 </style>

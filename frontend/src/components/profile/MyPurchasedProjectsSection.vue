@@ -44,32 +44,43 @@ const formatDate = (date) => {
     ).format(parsed)
 }
 
-const formatAmount = (
-    amount,
-    currency
-) => {
+const formatAmount = (amount, currency) => {
     if (
         amount === null ||
-        amount === undefined
+        amount === undefined ||
+        amount === ''
     ) {
         return '-'
     }
 
-    try {
-        return `${new Intl.NumberFormat(
-            'en-US'
-        ).format(Number(amount))} ${
-            currency || ''
-        }`.trim()
-    } catch {
-        return `${amount} ${
-            currency || ''
-        }`.trim()
+    const numericAmount = Number(amount)
+
+    if (Number.isNaN(numericAmount)) {
+        return `${amount} ${currency || ''}`.trim()
     }
+
+    return `${new Intl.NumberFormat('en-US').format(
+        numericAmount
+    )} ${currency || ''}`.trim()
 }
 
 const getImageUrl = (project) => {
     return project?.images?.[0]?.url || null
+}
+
+const getImageAlt = (project) => {
+    return (
+        project?.images?.[0]?.alt ||
+        project?.title ||
+        'تصویر پروژه'
+    )
+}
+
+const getProjectKey = (project) => {
+    return (
+        project?.payment_id ||
+        project?.id
+    )
 }
 
 const downloadProject = async (project) => {
@@ -91,14 +102,14 @@ const downloadProject = async (project) => {
             }
         )
 
+        const contentType =
+            response.headers?.['content-type'] ||
+            'application/zip'
+
         const blob = new Blob(
             [response.data],
             {
-                type:
-                    response.headers?.[
-                        'content-type'
-                    ] ||
-                    'application/zip',
+                type: contentType,
             }
         )
 
@@ -132,15 +143,17 @@ const downloadProject = async (project) => {
 </script>
 
 <template>
-    <section class="purchased-section">
-
-        <div class="section-header">
+    <section
+        class="purchased-section"
+        aria-labelledby="purchased-projects-title"
+    >
+        <header class="section-header">
             <div>
                 <span class="section-kicker">
                     PURCHASED PROJECTS
                 </span>
 
-                <h2>
+                <h2 id="purchased-projects-title">
                     پروژه‌های خریداری‌شده
                 </h2>
 
@@ -150,28 +163,40 @@ const downloadProject = async (project) => {
                 </p>
             </div>
 
-            <div class="project-count">
+            <div
+                class="project-count"
+                aria-label="تعداد پروژه‌های خریداری‌شده"
+            >
                 {{ projects.length }}
                 <span>پروژه</span>
             </div>
-        </div>
+        </header>
 
         <div
             v-if="downloadError"
             class="download-error"
+            role="alert"
+            aria-live="assertive"
         >
-            <XCircle :size="15" />
+            <XCircle
+                :size="15"
+                aria-hidden="true"
+            />
 
             <span>
                 {{ downloadError }}
             </span>
         </div>
 
+        <!-- Empty state -->
         <div
             v-if="!projects.length"
             class="state"
         >
-            <FolderArchive :size="25" />
+            <FolderArchive
+                :size="25"
+                aria-hidden="true"
+            />
 
             <h3>
                 هنوز پروژه‌ای خریداری نکرده‌اید
@@ -183,25 +208,29 @@ const downloadProject = async (project) => {
             </p>
         </div>
 
+        <!-- Projects -->
         <div
             v-else
             class="projects-list"
         >
             <article
                 v-for="project in projects"
-                :key="project.payment_id"
+                :key="getProjectKey(project)"
                 class="project-card"
             >
                 <div class="project-image">
                     <img
                         v-if="getImageUrl(project)"
                         :src="getImageUrl(project)"
-                        :alt="project.title"
+                        :alt="getImageAlt(project)"
+                        loading="lazy"
+                        decoding="async"
                     />
 
                     <ImageOff
                         v-else
                         :size="20"
+                        aria-hidden="true"
                     />
                 </div>
 
@@ -227,7 +256,7 @@ const downloadProject = async (project) => {
                         مبلغ
                     </span>
 
-                    <strong>
+                    <strong dir="ltr">
                         {{
                             formatAmount(
                                 project.price,
@@ -238,11 +267,18 @@ const downloadProject = async (project) => {
 
                     <small>
                         خرید:
-                        {{
-                            formatDate(
-                                project.purchased_at
-                            )
-                        }}
+                        <time
+                            :datetime="
+                                project.purchased_at ||
+                                undefined
+                            "
+                        >
+                            {{
+                                formatDate(
+                                    project.purchased_at
+                                )
+                            }}
+                        </time>
                     </small>
                 </div>
 
@@ -253,6 +289,16 @@ const downloadProject = async (project) => {
                         :disabled="
                             downloadingProjectId ===
                             project.id
+                        "
+                        :aria-busy="
+                            downloadingProjectId ===
+                            project.id
+                        "
+                        :aria-label="
+                            downloadingProjectId ===
+                            project.id
+                                ? `در حال دانلود ${project.title}`
+                                : `دانلود ${project.title}`
                         "
                         @click="
                             downloadProject(project)
@@ -265,11 +311,13 @@ const downloadProject = async (project) => {
                             "
                             :size="14"
                             class="loader"
+                            aria-hidden="true"
                         />
 
                         <Download
                             v-else
                             :size="14"
+                            aria-hidden="true"
                         />
 
                         <span>
@@ -314,7 +362,8 @@ const downloadProject = async (project) => {
 
     font-family: var(--font-mono);
 
-    font-size: 8px;
+    font-size: 9px;
+    font-weight: 600;
 }
 
 .section-header h2 {
@@ -322,16 +371,21 @@ const downloadProject = async (project) => {
 
     color: var(--text-primary);
 
-    font-size: 18px;
-    font-weight: 900;
+    font-family: inherit;
+
+    font-size: 20px;
+    font-weight: 850;
 }
 
 .section-header p {
-    margin-top: 4px;
+    margin-top: 5px;
 
     color: var(--text-muted);
 
-    font-size: 9px;
+    font-family: inherit;
+
+    font-size: 11px;
+    line-height: 1.7;
 }
 
 .project-count {
@@ -344,13 +398,17 @@ const downloadProject = async (project) => {
 
     background: rgba(255, 107, 0, 0.035);
 
-    font-size: 10px;
+    font-size: 11px;
+    font-weight: 700;
 }
 
 .project-count span {
+    margin-inline-start: 3px;
+
     color: var(--text-muted);
 
-    font-size: 8px;
+    font-size: 9px;
+    font-weight: 400;
 }
 
 .projects-list {
@@ -381,19 +439,17 @@ const downloadProject = async (project) => {
 
     border-radius: 9px;
 
-    background:
-        rgba(255, 255, 255, 0.012);
+    background: rgba(255, 255, 255, 0.012);
 
     transition:
-        border-color 0.2s ease,
-        background 0.2s ease;
+        border-color var(--transition),
+        background var(--transition);
 }
 
 .project-card:hover {
     border-color: var(--border-orange);
 
-    background:
-        rgba(255, 255, 255, 0.018);
+    background: rgba(255, 255, 255, 0.018);
 }
 
 .project-image {
@@ -404,6 +460,8 @@ const downloadProject = async (project) => {
     align-items: center;
     justify-content: center;
 
+    flex-shrink: 0;
+
     overflow: hidden;
 
     color: var(--text-muted);
@@ -412,8 +470,7 @@ const downloadProject = async (project) => {
 
     border-radius: 7px;
 
-    background:
-        rgba(255, 255, 255, 0.025);
+    background: rgba(255, 255, 255, 0.025);
 }
 
 .project-image img {
@@ -436,7 +493,8 @@ const downloadProject = async (project) => {
 
     font-family: var(--font-mono);
 
-    font-size: 6px;
+    font-size: 7px;
+    font-weight: 600;
 }
 
 .project-main h3 {
@@ -446,7 +504,10 @@ const downloadProject = async (project) => {
 
     color: var(--text-primary);
 
-    font-size: 11px;
+    font-family: inherit;
+
+    font-size: 13px;
+    font-weight: 750;
 
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -459,7 +520,10 @@ const downloadProject = async (project) => {
 
     color: var(--text-muted);
 
-    font-size: 7px;
+    font-family: inherit;
+
+    font-size: 10px;
+    line-height: 1.6;
 
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -478,13 +542,18 @@ const downloadProject = async (project) => {
 .project-info small {
     color: var(--text-muted);
 
-    font-size: 7px;
+    font-family: inherit;
+
+    font-size: 9px;
 }
 
 .project-info strong {
     color: var(--text-secondary);
 
-    font-size: 9px;
+    font-family: inherit;
+
+    font-size: 10px;
+    font-weight: 700;
 }
 
 .project-action {
@@ -495,7 +564,7 @@ const downloadProject = async (project) => {
 }
 
 .project-action button {
-    min-height: 30px;
+    min-height: 32px;
 
     padding-inline: 11px;
 
@@ -507,41 +576,49 @@ const downloadProject = async (project) => {
 
     color: var(--text-primary);
 
-    border: 1px solid
-        rgba(255, 107, 0, 0.25);
+    border: 1px solid rgba(255, 107, 0, 0.25);
 
     border-radius: 7px;
 
     background: var(--orange-soft);
 
-    font-size: 8px;
+    font-family: inherit;
+
+    font-size: 10px;
     font-weight: 700;
 
     cursor: pointer;
 
     transition:
-        border-color 0.2s ease,
-        background 0.2s ease,
-        opacity 0.2s ease;
+        border-color var(--transition),
+        background var(--transition),
+        opacity var(--transition);
 }
 
 .project-action button:hover:not(:disabled) {
     border-color: var(--orange);
 
-    background:
-        rgba(255, 107, 0, 0.09);
+    background: rgba(255, 107, 0, 0.09);
+}
+
+.project-action button:focus-visible {
+    outline: 2px solid var(--orange);
+
+    outline-offset: 3px;
 }
 
 .project-action button:disabled {
     opacity: 0.55;
 
-    cursor: not-allowed;
+    cursor: wait;
 }
 
 .not-downloadable {
     color: var(--text-muted);
 
-    font-size: 7px;
+    font-family: inherit;
+
+    font-size: 9px;
 }
 
 .download-error {
@@ -556,15 +633,16 @@ const downloadProject = async (project) => {
 
     color: var(--danger);
 
-    border: 1px solid
-        rgba(255, 92, 92, 0.15);
+    border: 1px solid rgba(255, 92, 92, 0.15);
 
     border-radius: 7px;
 
-    background:
-        rgba(255, 92, 92, 0.025);
+    background: rgba(255, 92, 92, 0.025);
 
-    font-size: 8px;
+    font-family: inherit;
+
+    font-size: 10px;
+    line-height: 1.7;
 }
 
 .state {
@@ -584,34 +662,47 @@ const downloadProject = async (project) => {
 
     border-radius: 11px;
 
-    background:
-        rgba(255, 255, 255, 0.01);
+    background: rgba(255, 255, 255, 0.01);
 
     text-align: center;
 
-    font-size: 9px;
+    font-family: inherit;
+
+    font-size: 10px;
 }
 
 .state h3 {
     color: var(--text-primary);
 
-    font-size: 11px;
+    font-family: inherit;
+
+    font-size: 13px;
+    font-weight: 750;
 }
 
 .state p {
     max-width: 380px;
 
-    font-size: 8px;
+    font-size: 10px;
+    line-height: 1.7;
 }
 
 .loader {
-    animation:
-        spin 0.8s linear infinite;
+    animation: spin 0.8s linear infinite;
 }
 
 @keyframes spin {
     to {
         transform: rotate(360deg);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .project-card,
+    .project-action button,
+    .loader {
+        transition: none;
+        animation: none;
     }
 }
 
@@ -625,11 +716,13 @@ const downloadProject = async (project) => {
 
     .project-info {
         grid-column: 2;
+
         align-items: flex-start;
     }
 
     .project-action {
         grid-column: 3;
+
         grid-row: 1 / span 2;
     }
 }
@@ -666,6 +759,7 @@ const downloadProject = async (project) => {
 
     .project-action {
         grid-column: 1 / -1;
+
         grid-row: auto;
 
         justify-content: stretch;
@@ -676,4 +770,3 @@ const downloadProject = async (project) => {
     }
 }
 </style>
-

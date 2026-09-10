@@ -50,6 +50,7 @@ const steps = [
     <section
         id="process"
         class="process-section section"
+        aria-labelledby="process-title"
     >
         <div class="container">
 
@@ -58,7 +59,7 @@ const steps = [
                     فرآیند همکاری
                 </span>
 
-                <h2>
+                <h2 id="process-title">
                     از ایده تا
                     <span>محصول نهایی</span>
                 </h2>
@@ -69,17 +70,27 @@ const steps = [
                 </p>
             </div>
 
-            <div class="process-list">
-                <div
+            <div
+                class="process-list"
+                role="list"
+            >
+                <article
                     v-for="(step, index) in steps"
                     :key="step.number"
                     class="process-step"
+                    role="listitem"
                 >
-                    <div class="step-number">
+                    <div
+                        class="step-number"
+                        aria-hidden="true"
+                    >
                         {{ step.number }}
                     </div>
 
-                    <div class="step-icon">
+                    <div
+                        class="step-icon"
+                        aria-hidden="true"
+                    >
                         <component
                             :is="step.icon"
                             :size="22"
@@ -100,8 +111,9 @@ const steps = [
                     <div
                         v-if="index < steps.length - 1"
                         class="step-line"
+                        aria-hidden="true"
                     ></div>
-                </div>
+                </article>
             </div>
 
         </div>
@@ -113,6 +125,10 @@ const steps = [
     padding-top: 70px;
     padding-bottom: 90px;
 }
+
+/* ----------------------------- */
+/* Heading */
+/* ----------------------------- */
 
 .process-heading {
     max-width: 620px;
@@ -131,8 +147,9 @@ const steps = [
 
     color: var(--text-primary);
 
-    font-size: 22px;
-    font-weight: 900;
+    font-size: 21px;
+    font-weight: 800;
+    line-height: 1.6;
 }
 
 .section-kicker::after {
@@ -158,12 +175,11 @@ const steps = [
 
     color: var(--text-primary);
 
-    font-size: clamp(28px, 3.5vw, 42px);
-    line-height: 1.3;
+    font-size: clamp(30px, 3.5vw, 42px);
+    font-weight: 850;
+    line-height: 1.35;
 
-    font-weight: 900;
-
-    letter-spacing: -0.04em;
+    letter-spacing: -0.035em;
 }
 
 .process-heading h2 span {
@@ -173,18 +189,25 @@ const steps = [
 .process-heading p {
     max-width: 500px;
 
-    margin: 13px auto 0;
+    margin: 14px auto 0;
 
     color: var(--text-muted);
 
-    font-size: 11px;
-    line-height: 2.1;
+    font-size: 13px;
+    font-weight: 400;
+    line-height: 2.15;
 }
+
+/* ----------------------------- */
+/* Process List */
+/* ----------------------------- */
 
 .process-list {
     display: grid;
 
     grid-template-columns: repeat(5, 1fr);
+
+    overflow: hidden;
 
     border: 1px solid rgba(255, 255, 255, 0.07);
     border-radius: 14px;
@@ -195,16 +218,14 @@ const steps = [
             rgba(255, 255, 255, 0.022),
             rgba(255, 255, 255, 0.007)
         );
-
-    overflow: hidden;
 }
 
 .process-step {
     position: relative;
 
-    min-height: 225px;
+    min-height: 235px;
 
-    padding: 20px 17px 18px;
+    padding: 20px 18px 19px;
 
     display: flex;
     flex-direction: column;
@@ -220,9 +241,12 @@ const steps = [
 }
 
 .process-step:hover {
-    background:
-        rgba(255, 107, 0, 0.025);
+    background: rgba(255, 107, 0, 0.025);
 }
+
+/* ----------------------------- */
+/* Number */
+/* ----------------------------- */
 
 .step-number {
     color: #3b4044;
@@ -231,13 +255,18 @@ const steps = [
 
     font-family: var(--font-mono);
 
-    font-size: 9px;
+    font-size: 10px;
     font-weight: 700;
+    line-height: 1.5;
 }
 
+/* ----------------------------- */
+/* Icon */
+/* ----------------------------- */
+
 .step-icon {
-    width: 43px;
-    height: 43px;
+    width: 44px;
+    height: 44px;
 
     margin-top: 28px;
 
@@ -266,6 +295,10 @@ const steps = [
     transform: translateY(-3px);
 }
 
+/* ----------------------------- */
+/* Content */
+/* ----------------------------- */
+
 .step-content {
     margin-top: 18px;
 }
@@ -273,8 +306,9 @@ const steps = [
 .step-content h3 {
     color: var(--text-primary);
 
-    font-size: 13px;
-    font-weight: 800;
+    font-size: 14px;
+    font-weight: 750;
+    line-height: 1.7;
 }
 
 .step-content p {
@@ -282,9 +316,14 @@ const steps = [
 
     color: var(--text-muted);
 
-    font-size: 9px;
+    font-size: 11px;
+    font-weight: 400;
     line-height: 2;
 }
+
+/* ----------------------------- */
+/* Connecting Line */
+/* ----------------------------- */
 
 .step-line {
     position: absolute;
@@ -305,12 +344,32 @@ const steps = [
     opacity: 0.35;
 }
 
+/* ----------------------------- */
+/* Responsive */
+/* ----------------------------- */
+
+@media (max-width: 1100px) {
+    .process-step {
+        padding-inline: 15px;
+    }
+
+    .step-content h3 {
+        font-size: 13px;
+    }
+
+    .step-content p {
+        font-size: 10px;
+    }
+}
+
 @media (max-width: 950px) {
     .process-list {
         grid-template-columns: repeat(3, 1fr);
     }
 
     .process-step {
+        min-height: 225px;
+
         border-bottom: 1px solid rgba(255, 255, 255, 0.07);
     }
 
@@ -330,12 +389,25 @@ const steps = [
         padding-bottom: 70px;
     }
 
+    .process-heading {
+        margin-bottom: 35px;
+    }
+
+    .process-heading h2 {
+        font-size: 32px;
+    }
+
+    .process-heading p {
+        font-size: 12px;
+        line-height: 2.1;
+    }
+
     .process-list {
         grid-template-columns: 1fr 1fr;
     }
 
     .process-step {
-        min-height: 205px;
+        min-height: 210px;
     }
 
     .process-step:nth-child(3) {
@@ -372,6 +444,8 @@ const steps = [
     .process-step:nth-child(4) {
         min-height: auto;
 
+        padding: 19px 17px 20px;
+
         border-left: 0;
         border-bottom: 1px solid rgba(255, 255, 255, 0.07);
     }
@@ -383,5 +457,15 @@ const steps = [
     .step-icon {
         margin-top: 20px;
     }
+
+    .step-content h3 {
+        font-size: 14px;
+    }
+
+    .step-content p {
+        font-size: 11px;
+        line-height: 2;
+    }
 }
 </style>
+

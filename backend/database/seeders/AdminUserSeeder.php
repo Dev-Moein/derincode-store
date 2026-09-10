@@ -22,9 +22,7 @@ class AdminUserSeeder extends Seeder
             ]
         );
 
-
         $role = Role::where('slug', 'admin')->first();
-
 
         if ($role) {
             $admin->roles()->syncWithoutDetaching([

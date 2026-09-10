@@ -78,32 +78,38 @@ const formatBudget = (budget, currency) => {
         return 'تعیین نشده'
     }
 
-    try {
-        const formatted = new Intl.NumberFormat(
-            'en-US'
-        ).format(Number(budget))
+    const numericBudget = Number(budget)
 
-        return `${formatted} ${currency || ''}`.trim()
-    } catch {
+    if (Number.isNaN(numericBudget)) {
         return `${budget} ${currency || ''}`.trim()
     }
+
+    return `${new Intl.NumberFormat(
+        'en-US'
+    ).format(numericBudget)} ${
+        currency || ''
+    }`.trim()
 }
 
-onMounted(() => {
-    requestsStore.fetchMyRequests()
-})
+const fetchRequests = async () => {
+    await requestsStore.fetchMyRequests()
+}
+
+onMounted(fetchRequests)
 </script>
 
 <template>
-    <section class="requests-section">
-
-        <div class="section-header">
+    <section
+        class="requests-section"
+        aria-labelledby="my-requests-title"
+    >
+        <header class="section-header">
             <div>
                 <span class="section-kicker">
                     PROJECT REQUESTS
                 </span>
 
-                <h2>
+                <h2 id="my-requests-title">
                     درخواست‌های من
                 </h2>
 
@@ -113,20 +119,26 @@ onMounted(() => {
                 </p>
             </div>
 
-            <div class="request-count">
+            <div
+                class="request-count"
+                aria-label="تعداد درخواست‌ها"
+            >
                 {{ requests.length }}
                 <span>درخواست</span>
             </div>
-        </div>
+        </header>
 
         <!-- Loading -->
         <div
             v-if="loading"
             class="requests-loading"
+            role="status"
+            aria-live="polite"
         >
             <RefreshCw
                 :size="20"
                 class="loader"
+                aria-hidden="true"
             />
 
             <span>
@@ -138,8 +150,13 @@ onMounted(() => {
         <div
             v-else-if="error"
             class="requests-state"
+            role="alert"
+            aria-live="assertive"
         >
-            <div class="state-icon error">
+            <div
+                class="state-icon error"
+                aria-hidden="true"
+            >
                 <XCircle :size="22" />
             </div>
 
@@ -154,9 +171,20 @@ onMounted(() => {
             <button
                 type="button"
                 class="retry-button"
-                @click="requestsStore.fetchMyRequests()"
+                :disabled="loading"
+                :aria-busy="loading"
+                @click="fetchRequests"
             >
-                تلاش مجدد
+                <RefreshCw
+                    v-if="loading"
+                    :size="14"
+                    class="loader"
+                    aria-hidden="true"
+                />
+
+                <span>
+                    تلاش مجدد
+                </span>
             </button>
         </div>
 
@@ -165,7 +193,10 @@ onMounted(() => {
             v-else-if="!requests.length"
             class="requests-state"
         >
-            <div class="state-icon">
+            <div
+                class="state-icon"
+                aria-hidden="true"
+            >
                 <FileText :size="22" />
             </div>
 
@@ -190,7 +221,6 @@ onMounted(() => {
                 class="request-card"
             >
                 <div class="request-top">
-
                     <div class="request-title-area">
                         <span class="request-id">
                             #{{ request.id }}
@@ -203,7 +233,18 @@ onMounted(() => {
 
                     <div
                         class="request-status"
-                        :class="getStatus(request.status).class"
+                        :class="
+                            getStatus(
+                                request.status
+                            ).class
+                        "
+                        :aria-label="
+                            `وضعیت: ${
+                                getStatus(
+                                    request.status
+                                ).label
+                            }`
+                        "
                     >
                         <component
                             :is="
@@ -212,6 +253,7 @@ onMounted(() => {
                                 ).icon
                             "
                             :size="13"
+                            aria-hidden="true"
                         />
 
                         {{
@@ -227,13 +269,12 @@ onMounted(() => {
                 </p>
 
                 <div class="request-meta">
-
                     <div class="meta-item">
                         <span>
                             بودجه
                         </span>
 
-                        <strong>
+                        <strong dir="ltr">
                             {{
                                 formatBudget(
                                     request.budget,
@@ -249,7 +290,18 @@ onMounted(() => {
                         </span>
 
                         <strong>
-                            {{ formatDate(request.created_at) }}
+                            <time
+                                :datetime="
+                                    request.created_at ||
+                                    undefined
+                                "
+                            >
+                                {{
+                                    formatDate(
+                                        request.created_at
+                                    )
+                                }}
+                            </time>
                         </strong>
                     </div>
 
@@ -262,7 +314,17 @@ onMounted(() => {
                         </span>
 
                         <strong>
-                            {{ formatDate(request.reviewed_at) }}
+                            <time
+                                :datetime="
+                                    request.reviewed_at
+                                "
+                            >
+                                {{
+                                    formatDate(
+                                        request.reviewed_at
+                                    )
+                                }}
+                            </time>
                         </strong>
                     </div>
                 </div>
@@ -271,7 +333,10 @@ onMounted(() => {
                     v-if="request.admin_note"
                     class="admin-note"
                 >
-                    <MessageSquareText :size="16" />
+                    <MessageSquareText
+                        :size="16"
+                        aria-hidden="true"
+                    />
 
                     <div>
                         <span>
@@ -285,7 +350,6 @@ onMounted(() => {
                 </div>
             </article>
         </div>
-
     </section>
 </template>
 
@@ -311,7 +375,8 @@ onMounted(() => {
 
     font-family: var(--font-mono);
 
-    font-size: 8px;
+    font-size: 9px;
+    font-weight: 600;
 }
 
 .section-header h2 {
@@ -319,16 +384,21 @@ onMounted(() => {
 
     color: var(--text-primary);
 
-    font-size: 18px;
-    font-weight: 900;
+    font-family: inherit;
+
+    font-size: 20px;
+    font-weight: 850;
 }
 
 .section-header p {
-    margin-top: 4px;
+    margin-top: 5px;
 
     color: var(--text-muted);
 
-    font-size: 9px;
+    font-family: inherit;
+
+    font-size: 11px;
+    line-height: 1.7;
 }
 
 .request-count {
@@ -341,16 +411,17 @@ onMounted(() => {
 
     background: rgba(255, 107, 0, 0.035);
 
-    font-size: 10px;
+    font-size: 11px;
     font-weight: 800;
 }
 
 .request-count span {
-    margin-right: 3px;
+    margin-inline-start: 3px;
 
     color: var(--text-muted);
 
-    font-size: 8px;
+    font-size: 9px;
+    font-weight: 400;
 }
 
 /* Loading / State */
@@ -375,18 +446,20 @@ onMounted(() => {
 
 .requests-loading {
     flex-direction: row;
+
     gap: 9px;
 
     color: var(--text-muted);
 
-    font-size: 9px;
+    font-family: inherit;
+
+    font-size: 10px;
 }
 
 .loader {
     color: var(--orange);
 
-    animation:
-        spin 0.8s linear infinite;
+    animation: spin 0.8s linear infinite;
 }
 
 .state-icon {
@@ -418,7 +491,10 @@ onMounted(() => {
 
     color: var(--text-primary);
 
-    font-size: 11px;
+    font-family: inherit;
+
+    font-size: 13px;
+    font-weight: 750;
 }
 
 .requests-state p {
@@ -428,7 +504,9 @@ onMounted(() => {
 
     color: var(--text-muted);
 
-    font-size: 8px;
+    font-family: inherit;
+
+    font-size: 10px;
     line-height: 1.8;
 }
 
@@ -438,6 +516,12 @@ onMounted(() => {
     margin-top: 13px;
     padding-inline: 13px;
 
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    gap: 6px;
+
     color: var(--text-primary);
 
     border: 1px solid var(--border);
@@ -445,20 +529,35 @@ onMounted(() => {
 
     background: transparent;
 
-    font-size: 8px;
+    font-family: inherit;
+
+    font-size: 10px;
     font-weight: 700;
 
     cursor: pointer;
 
     transition:
         border-color var(--transition),
-        background var(--transition);
+        background var(--transition),
+        opacity var(--transition);
 }
 
-.retry-button:hover {
+.retry-button:hover:not(:disabled) {
     border-color: var(--border-orange);
 
     background: var(--orange-soft);
+}
+
+.retry-button:disabled {
+    opacity: 0.6;
+
+    cursor: wait;
+}
+
+.retry-button:focus-visible {
+    outline: 2px solid var(--orange);
+
+    outline-offset: 3px;
 }
 
 /* Request list */
@@ -517,7 +616,7 @@ onMounted(() => {
 
     font-family: var(--font-mono);
 
-    font-size: 7px;
+    font-size: 8px;
 }
 
 .request-title-area h3 {
@@ -525,25 +624,29 @@ onMounted(() => {
 
     color: var(--text-primary);
 
-    font-size: 13px;
+    font-family: inherit;
+
+    font-size: 14px;
     font-weight: 800;
 }
 
 .request-status {
     flex-shrink: 0;
 
-    min-height: 25px;
+    min-height: 27px;
 
     display: inline-flex;
     align-items: center;
 
     gap: 6px;
 
-    padding-inline: 8px;
+    padding-inline: 9px;
 
     border-radius: 6px;
 
-    font-size: 8px;
+    font-family: inherit;
+
+    font-size: 9px;
     font-weight: 700;
 }
 
@@ -588,7 +691,9 @@ onMounted(() => {
 
     color: var(--text-muted);
 
-    font-size: 9px;
+    font-family: inherit;
+
+    font-size: 10px;
     line-height: 1.9;
 
     -webkit-line-clamp: 3;
@@ -623,13 +728,17 @@ onMounted(() => {
 .meta-item span {
     color: #5f656a;
 
-    font-size: 7px;
+    font-family: inherit;
+
+    font-size: 8px;
 }
 
 .meta-item strong {
     color: var(--text-secondary);
 
-    font-size: 8px;
+    font-family: inherit;
+
+    font-size: 9px;
     font-weight: 700;
 }
 
@@ -660,7 +769,9 @@ onMounted(() => {
 .admin-note span {
     color: var(--orange);
 
-    font-size: 7px;
+    font-family: inherit;
+
+    font-size: 8px;
     font-weight: 700;
 }
 
@@ -669,13 +780,28 @@ onMounted(() => {
 
     color: var(--text-muted);
 
-    font-size: 8px;
+    font-family: inherit;
+
+    font-size: 9px;
     line-height: 1.8;
 }
 
 @keyframes spin {
     to {
         transform: rotate(360deg);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .request-card,
+    .retry-button,
+    .loader {
+        transition: none;
+        animation: none;
+    }
+
+    .request-card:hover {
+        transform: none;
     }
 }
 

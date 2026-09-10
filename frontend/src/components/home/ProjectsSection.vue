@@ -29,7 +29,7 @@ const getProjectAlt = (project) => {
     return (
         project?.images?.[0]?.alt ||
         project?.title ||
-        'Project image'
+        'تصویر پروژه'
     )
 }
 
@@ -52,17 +52,21 @@ const getProjectTags = (project) => {
     <section
         id="projects"
         class="projects-section section"
+        aria-labelledby="projects-title"
     >
         <div class="container">
 
             <!-- Heading -->
-            <div class="projects-header">
+            <header class="projects-header">
                 <div>
                     <span class="section-kicker">
                         نمونه‌کارهای منتخب
                     </span>
 
-                    <h2 class="projects-title">
+                    <h2
+                        id="projects-title"
+                        class="projects-title"
+                    >
                         پروژه‌هایی که
                         <span>ساخته‌ایم</span>
                     </h2>
@@ -73,24 +77,28 @@ const getProjectTags = (project) => {
                     </p>
                 </div>
 
-                <a
-                    href="#contact"
-                    class="all-projects-link"
-                >
-                    مشاهده همه نمونه‌کارها
-                    <ArrowLeft :size="15" />
-                </a>
-            </div>
+                <RouterLink
+    to="/projects"
+    class="all-projects-link"
+>
+    <span>مشاهده همه نمونه‌کارها</span>
+    <ArrowLeft :size="16" aria-hidden="true" />
+</RouterLink>
+            </header>
 
             <!-- Loading -->
             <div
                 v-if="loading"
                 class="projects-grid"
+                role="status"
+                aria-live="polite"
+                aria-label="در حال دریافت پروژه‌ها"
             >
                 <article
                     v-for="item in 4"
                     :key="item"
                     class="project-card skeleton-card"
+                    aria-hidden="true"
                 >
                     <div class="skeleton-image"></div>
 
@@ -106,8 +114,12 @@ const getProjectTags = (project) => {
             <div
                 v-else-if="error"
                 class="projects-state"
+                role="alert"
             >
-                <div class="state-icon">
+                <div
+                    class="state-icon"
+                    aria-hidden="true"
+                >
                     <FolderCode :size="25" />
                 </div>
 
@@ -133,7 +145,10 @@ const getProjectTags = (project) => {
                 v-else-if="!projects.length"
                 class="projects-state"
             >
-                <div class="state-icon">
+                <div
+                    class="state-icon"
+                    aria-hidden="true"
+                >
                     <FolderCode :size="25" />
                 </div>
 
@@ -163,23 +178,31 @@ const getProjectTags = (project) => {
                             :src="getProjectImage(project)"
                             :alt="getProjectAlt(project)"
                             loading="lazy"
+                            decoding="async"
                         />
 
                         <div
                             v-else
                             class="project-image-placeholder"
+                            aria-hidden="true"
                         >
                             <FolderCode :size="36" />
                         </div>
 
-                        <div class="project-image-overlay"></div>
+                        <div
+                            class="project-image-overlay"
+                            aria-hidden="true"
+                        ></div>
 
                         <RouterLink
                             :to="`/projects/${project.slug}`"
                             class="project-open"
-                            :aria-label="`مشاهده ${project.title}`"
+                            :aria-label="`مشاهده جزئیات پروژه ${project.title}`"
                         >
-                            <ExternalLink :size="16" />
+                            <ExternalLink
+                                :size="16"
+                                aria-hidden="true"
+                            />
                         </RouterLink>
                     </div>
 
@@ -207,7 +230,11 @@ const getProjectTags = (project) => {
                         </p>
 
                         <div class="project-bottom">
-                            <div class="project-tags">
+                            <div
+                                v-if="getProjectTags(project).length"
+                                class="project-tags"
+                                aria-label="برچسب‌های پروژه"
+                            >
                                 <span
                                     v-for="tag in getProjectTags(project)"
                                     :key="tag"
@@ -219,8 +246,12 @@ const getProjectTags = (project) => {
                             <RouterLink
                                 :to="`/projects/${project.slug}`"
                                 class="project-link"
+                                :aria-label="`مشاهده جزئیات پروژه ${project.title}`"
                             >
-                                <ArrowLeft :size="15" />
+                                <ArrowLeft
+                                    :size="16"
+                                    aria-hidden="true"
+                                />
                             </RouterLink>
                         </div>
                     </div>
@@ -237,28 +268,31 @@ const getProjectTags = (project) => {
     padding-bottom: 90px;
 }
 
+/* -------------------------------- */
+/* Header */
+/* -------------------------------- */
+
 .projects-header {
     display: flex;
     align-items: flex-end;
     justify-content: space-between;
     gap: 30px;
 
-    margin-bottom: 32px;
+    margin-bottom: 34px;
 }
 
 .section-kicker {
-    display: inline-block;
-
     position: relative;
 
-    padding-bottom: 11px;
+    display: inline-block;
+
+    padding-bottom: 10px;
 
     color: var(--text-primary);
 
-    font-size: 23px;
-    font-weight: 900;
-
-    line-height: 1.35;
+    font-size: 20px;
+    font-weight: 800;
+    line-height: 1.6;
 }
 
 .section-kicker::after {
@@ -278,12 +312,15 @@ const getProjectTags = (project) => {
 }
 
 .projects-title {
-    margin-top: 17px;
+    margin-top: 16px;
 
     color: var(--text-primary);
 
-    font-size: 18px;
-    font-weight: 800;
+    font-size: clamp(30px, 3.5vw, 42px);
+    font-weight: 850;
+    line-height: 1.35;
+
+    letter-spacing: -0.035em;
 }
 
 .projects-title span {
@@ -293,12 +330,12 @@ const getProjectTags = (project) => {
 .projects-description {
     max-width: 500px;
 
-    margin-top: 8px;
+    margin-top: 9px;
 
     color: var(--text-muted);
 
-    font-size: 11px;
-    line-height: 2;
+    font-size: 13px;
+    line-height: 2.15;
 }
 
 .all-projects-link {
@@ -308,10 +345,17 @@ const getProjectTags = (project) => {
 
     flex-shrink: 0;
 
+    min-height: 40px;
+
+    padding: 0 2px;
+
     color: var(--orange);
 
-    font-size: 10px;
+    font-size: 12px;
     font-weight: 700;
+    line-height: 1.7;
+
+    text-decoration: none;
 
     transition:
         color var(--transition),
@@ -323,12 +367,22 @@ const getProjectTags = (project) => {
     transform: translateX(-3px);
 }
 
+.all-projects-link:focus-visible {
+    outline: 2px solid var(--orange);
+    outline-offset: 5px;
+    border-radius: 4px;
+}
+
+/* -------------------------------- */
+/* Grid */
+/* -------------------------------- */
+
 .projects-grid {
     display: grid;
 
     grid-template-columns: repeat(4, minmax(0, 1fr));
 
-    gap: 10px;
+    gap: 12px;
 }
 
 .project-card {
@@ -367,12 +421,16 @@ const getProjectTags = (project) => {
         0 20px 48px rgba(0, 0, 0, 0.25);
 }
 
+/* -------------------------------- */
+/* Image */
+/* -------------------------------- */
+
 .project-image {
     position: relative;
 
-    aspect-ratio: 16 / 10;
-
     overflow: hidden;
+
+    aspect-ratio: 16 / 10;
 
     background: #090b0d;
 }
@@ -380,6 +438,8 @@ const getProjectTags = (project) => {
 .project-image img {
     width: 100%;
     height: 100%;
+
+    display: block;
 
     object-fit: cover;
 
@@ -391,13 +451,14 @@ const getProjectTags = (project) => {
 .project-card:hover .project-image img {
     transform: scale(1.04);
 
-    filter:
-        brightness(0.88);
+    filter: brightness(0.88);
 }
 
 .project-image-overlay {
     position: absolute;
     inset: 0;
+
+    pointer-events: none;
 
     background:
         linear-gradient(
@@ -405,8 +466,6 @@ const getProjectTags = (project) => {
             transparent 50%,
             rgba(0, 0, 0, 0.5) 100%
         );
-
-    pointer-events: none;
 }
 
 .project-image-placeholder {
@@ -427,14 +486,18 @@ const getProjectTags = (project) => {
         );
 }
 
+/* -------------------------------- */
+/* Image action */
+/* -------------------------------- */
+
 .project-open {
     position: absolute;
 
     left: 10px;
     bottom: 10px;
 
-    width: 30px;
-    height: 30px;
+    width: 34px;
+    height: 34px;
 
     display: flex;
     align-items: center;
@@ -445,8 +508,7 @@ const getProjectTags = (project) => {
     border: 1px solid rgba(255, 107, 0, 0.35);
     border-radius: 7px;
 
-    background:
-        rgba(5, 6, 7, 0.76);
+    background: rgba(5, 6, 7, 0.76);
 
     backdrop-filter: blur(8px);
 
@@ -457,10 +519,12 @@ const getProjectTags = (project) => {
     transition:
         opacity var(--transition),
         transform var(--transition),
-        background var(--transition);
+        background var(--transition),
+        color var(--transition);
 }
 
-.project-card:hover .project-open {
+.project-card:hover .project-open,
+.project-open:focus-visible {
     opacity: 1;
     transform: translateY(0);
 }
@@ -470,13 +534,23 @@ const getProjectTags = (project) => {
     background: var(--orange);
 }
 
+.project-open:focus-visible {
+    outline: 2px solid var(--orange);
+    outline-offset: 3px;
+}
+
+/* -------------------------------- */
+/* Content */
+/* -------------------------------- */
+
 .project-content {
-    padding: 14px 13px 12px;
+    padding: 15px 14px 13px;
 }
 
 .project-meta {
     display: flex;
     align-items: center;
+    flex-wrap: wrap;
     gap: 7px;
 }
 
@@ -485,7 +559,7 @@ const getProjectTags = (project) => {
     display: inline-flex;
     align-items: center;
 
-    min-height: 19px;
+    min-height: 22px;
 
     padding: 0 7px;
 
@@ -494,7 +568,9 @@ const getProjectTags = (project) => {
 
     color: var(--text-muted);
 
-    font-size: 7px;
+    font-size: 9px;
+    font-weight: 600;
+    line-height: 1.6;
 }
 
 .project-category {
@@ -502,17 +578,17 @@ const getProjectTags = (project) => {
 
     border-color: rgba(255, 107, 0, 0.15);
 
-    background:
-        rgba(255, 107, 0, 0.025);
+    background: rgba(255, 107, 0, 0.025);
 }
 
 .project-title {
-    margin-top: 10px;
+    margin-top: 11px;
 
     color: var(--text-primary);
 
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 800;
+    line-height: 1.7;
 }
 
 .project-description {
@@ -524,14 +600,16 @@ const getProjectTags = (project) => {
 
     color: var(--text-muted);
 
-    font-size: 9px;
-    line-height: 1.9;
+    font-size: 11px;
+    line-height: 2;
 
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
 }
 
 .project-bottom {
+    min-height: 30px;
+
     margin-top: 14px;
 
     display: flex;
@@ -549,17 +627,19 @@ const getProjectTags = (project) => {
 .project-tags span {
     padding: 3px 6px;
 
-    color: #878d92;
+    color: var(--text-muted);
 
     border: 1px solid rgba(255, 255, 255, 0.06);
     border-radius: 4px;
 
-    font-size: 7px;
+    font-size: 9px;
+    font-weight: 500;
+    line-height: 1.5;
 }
 
 .project-link {
-    width: 27px;
-    height: 27px;
+    width: 30px;
+    height: 30px;
 
     flex-shrink: 0;
 
@@ -572,8 +652,7 @@ const getProjectTags = (project) => {
     border: 1px solid rgba(255, 107, 0, 0.2);
     border-radius: 7px;
 
-    background:
-        rgba(255, 107, 0, 0.025);
+    background: rgba(255, 107, 0, 0.025);
 
     transition:
         color var(--transition),
@@ -589,6 +668,11 @@ const getProjectTags = (project) => {
     transform: translateX(-2px);
 }
 
+.project-link:focus-visible {
+    outline: 2px solid var(--orange);
+    outline-offset: 3px;
+}
+
 /* -------------------------------- */
 /* Loading */
 /* -------------------------------- */
@@ -600,6 +684,7 @@ const getProjectTags = (project) => {
 .skeleton-image,
 .skeleton-content span {
     position: relative;
+
     overflow: hidden;
 
     background: rgba(255, 255, 255, 0.035);
@@ -630,13 +715,13 @@ const getProjectTags = (project) => {
 }
 
 .skeleton-content {
-    padding: 14px;
+    padding: 15px 14px;
 }
 
 .skeleton-content span {
     display: block;
 
-    height: 10px;
+    height: 11px;
 
     margin-bottom: 9px;
 
@@ -704,7 +789,9 @@ const getProjectTags = (project) => {
 
     color: var(--text-primary);
 
-    font-size: 14px;
+    font-size: 15px;
+    font-weight: 750;
+    line-height: 1.7;
 }
 
 .projects-state p {
@@ -714,14 +801,15 @@ const getProjectTags = (project) => {
 
     color: var(--text-muted);
 
-    font-size: 10px;
+    font-size: 11px;
+    line-height: 1.9;
 }
 
 .retry-button {
-    min-height: 36px;
+    min-height: 38px;
 
     margin-top: 16px;
-    padding: 0 16px;
+    padding: 0 17px;
 
     color: var(--text-primary);
 
@@ -730,14 +818,17 @@ const getProjectTags = (project) => {
 
     background: rgba(255, 107, 0, 0.05);
 
-    font-size: 10px;
+    font-family: inherit;
+    font-size: 11px;
     font-weight: 700;
+    line-height: 1.7;
 
     cursor: pointer;
 
     transition:
         color var(--transition),
-        background var(--transition);
+        background var(--transition),
+        transform var(--transition);
 }
 
 .retry-button:hover {
@@ -745,13 +836,45 @@ const getProjectTags = (project) => {
     background: var(--orange);
 }
 
+.retry-button:focus-visible {
+    outline: 2px solid var(--orange);
+    outline-offset: 3px;
+}
+
+.retry-button:active {
+    transform: translateY(1px);
+}
+
 /* -------------------------------- */
 /* Responsive */
 /* -------------------------------- */
 
+@media (max-width: 1100px) {
+    .projects-grid {
+        gap: 10px;
+    }
+
+    .project-content {
+        padding: 14px 12px 12px;
+    }
+
+    .project-description {
+        font-size: 10px;
+    }
+}
+
 @media (max-width: 1000px) {
     .projects-grid {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+    }
+
+    .project-content {
+        padding: 15px 14px 13px;
+    }
+
+    .project-description {
+        font-size: 11px;
     }
 }
 
@@ -763,12 +886,23 @@ const getProjectTags = (project) => {
     .projects-header {
         align-items: flex-start;
         flex-direction: column;
-        gap: 18px;
+        gap: 17px;
+    }
+
+    .projects-title {
+        font-size: clamp(30px, 7vw, 36px);
+    }
+
+    .projects-description {
+        font-size: 12px;
+    }
+
+    .all-projects-link {
+        font-size: 11px;
     }
 
     .projects-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 8px;
+        gap: 9px;
     }
 }
 
@@ -782,15 +916,53 @@ const getProjectTags = (project) => {
     }
 
     .project-content {
-        padding: 14px;
+        padding: 15px 14px 13px;
     }
 
     .project-title {
-        font-size: 14px;
+        font-size: 15px;
     }
 
     .project-description {
-        font-size: 10px;
+        font-size: 11px;
+    }
+
+    .project-tags span {
+        font-size: 9px;
+    }
+}
+
+@media (max-width: 400px) {
+    .projects-title {
+        font-size: 29px;
+    }
+
+    .projects-description {
+        font-size: 11px;
+    }
+
+    .projects-grid {
+        gap: 8px;
+    }
+}
+
+/* -------------------------------- */
+/* Reduced motion */
+/* -------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+    .project-card,
+    .project-image img,
+    .project-open,
+    .project-link,
+    .all-projects-link,
+    .retry-button {
+        transition: none;
+    }
+
+    .skeleton-image::after,
+    .skeleton-content span::after {
+        animation: none;
     }
 }
 </style>

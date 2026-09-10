@@ -6,7 +6,11 @@
 
                 <!-- Brand -->
                 <div class="footer-brand">
-                    <RouterLink to="/" class="logo">
+                    <RouterLink
+                        to="/"
+                        class="logo"
+                        aria-label="Derin Code - صفحه اصلی"
+                    >
                         <span>Derin</span><strong>Code</strong>
                     </RouterLink>
 
@@ -17,18 +21,21 @@
                 </div>
 
                 <!-- Navigation -->
-                <div class="footer-column">
-                    <h3>دسترسی سریع</h3>
+                <nav
+                    class="footer-column"
+                    aria-label="دسترسی سریع"
+                >
+                    <h2>دسترسی سریع</h2>
 
                     <a href="#services">خدمات</a>
                     <a href="#projects">نمونه‌کارها</a>
                     <a href="#process">فرآیند همکاری</a>
                     <a href="#about">درباره ما</a>
-                </div>
+                </nav>
 
                 <!-- Technologies -->
                 <div class="footer-column">
-                    <h3>تکنولوژی‌ها</h3>
+                    <h2>تکنولوژی‌ها</h2>
 
                     <span>Laravel</span>
                     <span>Vue.js</span>
@@ -38,7 +45,7 @@
 
                 <!-- Contact -->
                 <div class="footer-column contact-column">
-                    <h3>شروع همکاری</h3>
+                    <h2>شروع همکاری</h2>
 
                     <p>
                         پروژه‌ای در ذهن دارید؟
@@ -49,14 +56,23 @@
                         href="#contact"
                         class="contact-link"
                     >
-                        شروع یک گفتگو
-                        <span>←</span>
+                        <span>شروع یک گفتگو</span>
+
+                        <span
+                            class="contact-arrow"
+                            aria-hidden="true"
+                        >
+                            ←
+                        </span>
                     </a>
                 </div>
 
             </div>
 
-            <div class="footer-line"></div>
+            <div
+                class="footer-line"
+                aria-hidden="true"
+            ></div>
 
             <div class="footer-bottom">
                 <span>
@@ -64,7 +80,7 @@
                 </span>
 
                 <span class="status">
-                    <i></i>
+                    <i aria-hidden="true"></i>
                     آماده همکاری
                 </span>
             </div>
@@ -79,9 +95,9 @@
 
     padding: 68px 0 22px;
 
-    background: #050607;
-
     overflow: hidden;
+
+    background: #050607;
 }
 
 .footer::before {
@@ -106,6 +122,10 @@
     pointer-events: none;
 }
 
+/* -------------------------------- */
+/* Footer top */
+/* -------------------------------- */
+
 .footer-top {
     position: relative;
     z-index: 1;
@@ -127,17 +147,25 @@
     align-items: flex-start;
 }
 
+/* -------------------------------- */
+/* Logo */
+/* -------------------------------- */
+
 .logo {
     direction: ltr;
 
     display: inline-flex;
 
-    font-family: var(--font-mono);
+    color: inherit;
 
+    font-family: var(--font-mono);
     font-size: 23px;
     font-weight: 800;
+    line-height: 1;
 
     letter-spacing: -0.7px;
+
+    text-decoration: none;
 }
 
 .logo span {
@@ -148,16 +176,30 @@
     color: var(--orange);
 }
 
+.logo:focus-visible {
+    outline: 2px solid var(--orange);
+    outline-offset: 6px;
+    border-radius: 4px;
+}
+
+/* -------------------------------- */
+/* Brand description */
+/* -------------------------------- */
+
 .footer-brand p {
     max-width: 270px;
 
-    margin-top: 15px;
+    margin-top: 16px;
 
     color: var(--text-muted);
 
-    font-size: 11px;
+    font-size: 12px;
     line-height: 2;
 }
+
+/* -------------------------------- */
+/* Columns */
+/* -------------------------------- */
 
 .footer-column {
     display: flex;
@@ -167,20 +209,24 @@
     gap: 9px;
 }
 
-.footer-column h3 {
+.footer-column h2 {
     margin-bottom: 8px;
 
     color: var(--text-primary);
 
-    font-size: 11px;
-    font-weight: 800;
+    font-size: 12px;
+    font-weight: 750;
+    line-height: 1.7;
 }
 
 .footer-column a,
-.footer-column span {
+.footer-column > span {
     color: #747a80;
 
-    font-size: 10px;
+    font-size: 11px;
+    line-height: 1.7;
+
+    text-decoration: none;
 
     transition:
         color var(--transition),
@@ -189,16 +235,27 @@
 
 .footer-column a:hover {
     color: var(--orange);
+
     transform: translateX(-3px);
 }
+
+.footer-column a:focus-visible {
+    outline: 2px solid var(--orange);
+    outline-offset: 4px;
+    border-radius: 3px;
+}
+
+/* -------------------------------- */
+/* Contact */
+/* -------------------------------- */
 
 .contact-column p {
     max-width: 205px;
 
     color: #858b90;
 
-    font-size: 10px;
-    line-height: 1.95;
+    font-size: 11px;
+    line-height: 2;
 }
 
 .contact-link {
@@ -208,24 +265,39 @@
     align-items: center;
     gap: 9px;
 
-    color: var(--orange) !important;
+    color: var(--orange);
 
-    font-size: 10px !important;
+    font-size: 11px;
     font-weight: 700;
+    line-height: 1.7;
 
-    transition: gap var(--transition);
+    text-decoration: none;
+
+    transition:
+        color var(--transition),
+        gap var(--transition);
 }
 
 .contact-link:hover {
     gap: 13px;
-
-    transform: none !important;
 }
 
-.contact-link span {
+.contact-link:focus-visible {
+    outline: 2px solid var(--orange);
+    outline-offset: 5px;
+    border-radius: 4px;
+}
+
+.contact-arrow {
     color: var(--orange);
-    font-size: 16px;
+
+    font-size: 17px;
+    line-height: 1;
 }
+
+/* -------------------------------- */
+/* Divider */
+/* -------------------------------- */
 
 .footer-line {
     position: relative;
@@ -239,6 +311,10 @@
     background: var(--border);
 }
 
+/* -------------------------------- */
+/* Bottom */
+/* -------------------------------- */
+
 .footer-bottom {
     position: relative;
     z-index: 1;
@@ -251,7 +327,8 @@
 
     color: #595f64;
 
-    font-size: 9px;
+    font-size: 10px;
+    line-height: 1.7;
 }
 
 .status {
@@ -264,6 +341,8 @@
     width: 6px;
     height: 6px;
 
+    flex-shrink: 0;
+
     border-radius: 50%;
 
     background: var(--success);
@@ -273,9 +352,13 @@
         0 0 10px rgba(55, 214, 122, 0.45);
 }
 
+/* -------------------------------- */
+/* Responsive */
+/* -------------------------------- */
+
 @media (max-width: 850px) {
     .footer-top {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(2, minmax(0, 1fr));
 
         gap: 38px 35px;
     }
@@ -291,7 +374,7 @@
     }
 
     .footer-top {
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
 
         gap: 34px 20px;
     }
@@ -324,6 +407,17 @@
     .footer-brand,
     .contact-column {
         grid-column: auto;
+    }
+}
+
+/* -------------------------------- */
+/* Reduced motion */
+/* -------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+    .footer-column a,
+    .contact-link {
+        transition: none;
     }
 }
 </style>

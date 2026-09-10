@@ -18,7 +18,15 @@ const loading = ref(true)
 const payment = ref(null)
 
 const status = computed(() => {
-    return route.query.status || 'error'
+    const value = route.query.status
+
+    return [
+        'success',
+        'cancelled',
+        'failed',
+    ].includes(value)
+        ? value
+        : 'error'
 })
 
 const title = computed(() => {
@@ -65,10 +73,9 @@ const fetchPayment = async () => {
     }
 
     try {
-        const response =
-            await api.get(
-                `/payments/${paymentId}`
-            )
+        const response = await api.get(
+            `/payments/${paymentId}`
+        )
 
         payment.value =
             response?.data?.data || null
@@ -98,21 +105,32 @@ onMounted(fetchPayment)
 </script>
 
 <template>
-    <main class="payment-result-page">
-        <div class="result-card">
+    <main
+        class="payment-result-page"
+        aria-labelledby="payment-result-title"
+    >
+        <section
+            class="result-card"
+            :aria-live="
+                status === 'success'
+                    ? 'polite'
+                    : 'assertive'
+            "
+        >
 
+            <!-- Status Icon -->
             <div
                 v-if="status === 'success'"
                 class="result-icon success"
+                aria-hidden="true"
             >
                 <CheckCircle2 :size="36" />
             </div>
 
             <div
-                v-else-if="
-                    status === 'cancelled'
-                "
+                v-else-if="status === 'cancelled'"
                 class="result-icon cancelled"
+                aria-hidden="true"
             >
                 <Clock3 :size="36" />
             </div>
@@ -120,6 +138,7 @@ onMounted(fetchPayment)
             <div
                 v-else
                 class="result-icon failed"
+                aria-hidden="true"
             >
                 <XCircle :size="36" />
             </div>
@@ -128,14 +147,15 @@ onMounted(fetchPayment)
                 PAYMENT RESULT
             </span>
 
-            <h1>
+            <h1 id="payment-result-title">
                 {{ title }}
             </h1>
 
-            <p>
+            <p class="result-description">
                 {{ description }}
             </p>
 
+            <!-- Payment Summary -->
             <div
                 v-if="
                     !loading &&
@@ -143,32 +163,27 @@ onMounted(fetchPayment)
                     status === 'success'
                 "
                 class="payment-summary"
+                aria-label="جزئیات پرداخت"
             >
                 <div>
-                    <span>
-                        شماره پرداخت
-                    </span>
+                    <span>شماره پرداخت</span>
 
-                    <strong>
+                    <strong dir="ltr">
                         #{{ payment.id }}
                     </strong>
                 </div>
 
                 <div>
-                    <span>
-                        مبلغ
-                    </span>
+                    <span>مبلغ</span>
 
-                    <strong>
+                    <strong dir="ltr">
                         {{ payment.amount }}
                         {{ payment.currency }}
                     </strong>
                 </div>
 
                 <div>
-                    <span>
-                        وضعیت
-                    </span>
+                    <span>وضعیت</span>
 
                     <strong>
                         {{ payment.status }}
@@ -184,8 +199,14 @@ onMounted(fetchPayment)
                     class="primary-button"
                     @click="goProfile"
                 >
-                    <Download :size="16" />
-                    مشاهده پروژه‌ها و دانلود
+                    <Download
+                        :size="17"
+                        aria-hidden="true"
+                    />
+
+                    <span>
+                        مشاهده پروژه‌ها و دانلود
+                    </span>
                 </button>
 
                 <button
@@ -193,12 +214,18 @@ onMounted(fetchPayment)
                     class="secondary-button"
                     @click="goHome"
                 >
-                    <ArrowRight :size="16" />
-                    بازگشت به سایت
+                    <ArrowRight
+                        :size="17"
+                        aria-hidden="true"
+                    />
+
+                    <span>
+                        بازگشت به سایت
+                    </span>
                 </button>
 
             </div>
-        </div>
+        </section>
     </main>
 </template>
 
@@ -225,7 +252,7 @@ onMounted(fetchPayment)
     width: 100%;
     max-width: 500px;
 
-    padding: 35px 28px;
+    padding: 36px 28px;
 
     text-align: center;
 
@@ -247,7 +274,7 @@ onMounted(fetchPayment)
     width: 70px;
     height: 70px;
 
-    margin: 0 auto 18px;
+    margin: 0 auto 19px;
 
     display: flex;
     align-items: center;
@@ -287,13 +314,17 @@ onMounted(fetchPayment)
 }
 
 .result-kicker {
+    display: inline-block;
+
     color: var(--orange);
 
     direction: ltr;
 
     font-family: var(--font-mono);
-
-    font-size: 8px;
+    font-size: 10px;
+    font-weight: 600;
+    line-height: 1.7;
+    letter-spacing: 0.03em;
 }
 
 .result-card h1 {
@@ -301,42 +332,43 @@ onMounted(fetchPayment)
 
     color: var(--text-primary);
 
-    font-size: 24px;
+    font-size: 25px;
     font-weight: 900;
+    line-height: 1.5;
+    letter-spacing: -0.015em;
 }
 
-.result-card > p {
+.result-description {
     max-width: 390px;
 
-    margin: 9px auto 0;
+    margin: 10px auto 0;
 
     color: var(--text-muted);
 
-    font-size: 10px;
+    font-size: 12px;
     line-height: 2;
 }
 
 .payment-summary {
-    margin-top: 22px;
+    margin-top: 23px;
 
     display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
 
-    grid-template-columns:
-        repeat(3, 1fr);
-
-    gap: 7px;
+    gap: 8px;
 }
 
 .payment-summary > div {
-    padding: 9px;
+    min-width: 0;
+
+    padding: 11px 9px;
 
     display: flex;
     flex-direction: column;
 
-    gap: 3px;
+    gap: 4px;
 
     border: 1px solid var(--border);
-
     border-radius: 8px;
 
     background:
@@ -346,28 +378,33 @@ onMounted(fetchPayment)
 .payment-summary span {
     color: var(--text-muted);
 
-    font-size: 7px;
+    font-size: 9px;
+    line-height: 1.7;
 }
 
 .payment-summary strong {
+    overflow-wrap: anywhere;
+
     color: var(--text-secondary);
 
-    font-size: 8px;
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 1.7;
 }
 
 .result-actions {
     display: flex;
-
     flex-direction: column;
 
-    gap: 8px;
+    gap: 9px;
 
-    margin-top: 25px;
+    margin-top: 26px;
 }
 
 .primary-button,
 .secondary-button {
-    min-height: 44px;
+    width: 100%;
+    min-height: 46px;
 
     display: flex;
     align-items: center;
@@ -377,20 +414,25 @@ onMounted(fetchPayment)
 
     border-radius: 8px;
 
-    font-size: 9px;
+    font-family: inherit;
+    font-size: 11px;
     font-weight: 700;
+    line-height: 1.7;
 
     cursor: pointer;
+
+    transition:
+        background var(--transition),
+        border-color var(--transition),
+        transform var(--transition);
 }
 
 .primary-button {
     color: #fff;
 
-    background: var(--orange);
+    border: 1px solid transparent;
 
-    transition:
-        background var(--transition),
-        transform var(--transition);
+    background: var(--orange);
 }
 
 .primary-button:hover {
@@ -411,13 +453,46 @@ onMounted(fetchPayment)
     border-color: var(--border-orange);
 }
 
+.primary-button:focus-visible,
+.secondary-button:focus-visible {
+    outline: 2px solid var(--orange);
+    outline-offset: 4px;
+}
+
 @media (max-width: 450px) {
+    .payment-result-page {
+        padding-inline: 14px;
+    }
+
     .result-card {
-        padding: 28px 17px;
+        padding: 29px 18px;
+    }
+
+    .result-card h1 {
+        font-size: 23px;
     }
 
     .payment-summary {
         grid-template-columns: 1fr;
+    }
+
+    .payment-summary > div {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+
+        padding: 10px 12px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .primary-button,
+    .secondary-button {
+        transition: none;
+    }
+
+    .primary-button:hover {
+        transform: none;
     }
 }
 </style>

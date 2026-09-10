@@ -40,8 +40,7 @@ const submit = async () => {
         email: authStore.forgotEmail,
         otp: authStore.verifiedOtp,
         password: form.password,
-        password_confirmation:
-            form.password_confirmation,
+        password_confirmation: form.password_confirmation,
     })
 
     if (!result.success) {
@@ -52,10 +51,12 @@ const submit = async () => {
         return
     }
 
-    successMessage.value = result.message
+    successMessage.value =
+        result.message ||
+        'رمز عبور با موفقیت تغییر کرد.'
 
     setTimeout(() => {
-        router.push({
+        router.replace({
             name: 'login',
         })
     }, 1200)
@@ -63,28 +64,38 @@ const submit = async () => {
 </script>
 
 <template>
-    <main class="auth-page">
+    <main
+        class="auth-page"
+        aria-labelledby="reset-password-title"
+    >
         <div class="auth-container">
 
             <RouterLink
                 to="/"
                 class="auth-logo"
+                aria-label="DerinCode - صفحه اصلی"
             >
                 <span>Derin</span><strong>Code</strong>
             </RouterLink>
 
-            <div class="auth-card">
+            <section
+                class="auth-card"
+                aria-labelledby="reset-password-title"
+            >
 
-                <div class="reset-icon">
+                <div
+                    class="reset-icon"
+                    aria-hidden="true"
+                >
                     <LockKeyhole :size="24" />
                 </div>
 
-                <div class="auth-header">
+                <header class="auth-header">
                     <span class="auth-kicker">
                         NEW PASSWORD
                     </span>
 
-                    <h1>
+                    <h1 id="reset-password-title">
                         رمز عبور جدید
                     </h1>
 
@@ -92,11 +103,13 @@ const submit = async () => {
                         یک رمز عبور جدید و حداقل ۸ کاراکتری
                         برای حساب خود انتخاب کنید.
                     </p>
-                </div>
+                </header>
 
                 <div
                     v-if="localError"
                     class="message message-error"
+                    role="alert"
+                    aria-live="assertive"
                 >
                     {{ localError }}
                 </div>
@@ -104,9 +117,17 @@ const submit = async () => {
                 <div
                     v-if="successMessage"
                     class="message message-success"
+                    role="status"
+                    aria-live="polite"
                 >
-                    <CheckCircle2 :size="15" />
-                    {{ successMessage }}
+                    <CheckCircle2
+                        :size="15"
+                        aria-hidden="true"
+                    />
+
+                    <span>
+                        {{ successMessage }}
+                    </span>
                 </div>
 
                 <form
@@ -119,7 +140,10 @@ const submit = async () => {
                         </label>
 
                         <div class="input">
-                            <LockKeyhole :size="16" />
+                            <LockKeyhole
+                                :size="16"
+                                aria-hidden="true"
+                            />
 
                             <input
                                 id="password"
@@ -129,6 +153,11 @@ const submit = async () => {
                                 placeholder="حداقل ۸ کاراکتر"
                                 minlength="8"
                                 required
+                                :aria-invalid="
+                                    Boolean(
+                                        authStore.errors.password
+                                    )
+                                "
                             />
                         </div>
 
@@ -146,7 +175,10 @@ const submit = async () => {
                         </label>
 
                         <div class="input">
-                            <LockKeyhole :size="16" />
+                            <LockKeyhole
+                                :size="16"
+                                aria-hidden="true"
+                            />
 
                             <input
                                 id="password-confirmation"
@@ -158,12 +190,19 @@ const submit = async () => {
                                 placeholder="تکرار رمز عبور"
                                 minlength="8"
                                 required
+                                :aria-invalid="
+                                    Boolean(
+                                        authStore.errors
+                                            .password_confirmation
+                                    )
+                                "
                             />
                         </div>
 
                         <span
                             v-if="
-                                authStore.errors.password_confirmation
+                                authStore.errors
+                                    .password_confirmation
                             "
                             class="field-error"
                         >
@@ -178,6 +217,7 @@ const submit = async () => {
                         type="submit"
                         class="submit-button"
                         :disabled="authStore.loading"
+                        :aria-busy="authStore.loading"
                     >
                         <span v-if="!authStore.loading">
                             تغییر رمز عبور
@@ -187,20 +227,26 @@ const submit = async () => {
                             v-else
                             :size="17"
                             class="loader"
+                            aria-hidden="true"
                         />
 
                         <ArrowLeft
                             v-if="!authStore.loading"
                             :size="16"
+                            aria-hidden="true"
                         />
                     </button>
                 </form>
-            </div>
+            </section>
         </div>
     </main>
 </template>
 
 <style scoped>
+/* ================================================================ */
+/* Page */
+/* ================================================================ */
+
 .auth-page {
     min-height: 100vh;
 
@@ -224,6 +270,10 @@ const submit = async () => {
     max-width: 420px;
 }
 
+/* ================================================================ */
+/* Logo */
+/* ================================================================ */
+
 .auth-logo {
     width: fit-content;
 
@@ -234,8 +284,11 @@ const submit = async () => {
     direction: ltr;
 
     font-family: var(--font-mono);
+
     font-size: 20px;
     font-weight: 800;
+
+    line-height: 1;
 }
 
 .auth-logo span {
@@ -245,6 +298,10 @@ const submit = async () => {
 .auth-logo strong {
     color: var(--orange);
 }
+
+/* ================================================================ */
+/* Card */
+/* ================================================================ */
 
 .auth-card {
     padding: 27px 28px;
@@ -263,6 +320,10 @@ const submit = async () => {
         0 25px 80px rgba(0, 0, 0, 0.28);
 }
 
+/* ================================================================ */
+/* Reset Icon */
+/* ================================================================ */
+
 .reset-icon {
     width: 52px;
     height: 52px;
@@ -279,19 +340,28 @@ const submit = async () => {
     background: var(--orange-soft);
 }
 
+/* ================================================================ */
+/* Header */
+/* ================================================================ */
+
 .auth-header {
     margin-top: 18px;
     margin-bottom: 23px;
 }
 
 .auth-kicker {
+    display: inline-block;
+
     color: var(--orange);
 
     direction: ltr;
 
     font-family: var(--font-mono);
 
-    font-size: 8px;
+    font-size: 10px;
+    font-weight: 600;
+
+    line-height: 1.7;
 }
 
 .auth-header h1 {
@@ -299,8 +369,10 @@ const submit = async () => {
 
     color: var(--text-primary);
 
-    font-size: 27px;
+    font-size: 28px;
     font-weight: 900;
+
+    line-height: 1.35;
 }
 
 .auth-header p {
@@ -308,9 +380,14 @@ const submit = async () => {
 
     color: var(--text-muted);
 
-    font-size: 10px;
+    font-size: 12px;
+
     line-height: 1.9;
 }
+
+/* ================================================================ */
+/* Form */
+/* ================================================================ */
 
 .auth-form {
     display: flex;
@@ -329,12 +406,18 @@ const submit = async () => {
 
     color: var(--text-secondary);
 
-    font-size: 9px;
+    font-size: 11px;
     font-weight: 700;
+
+    line-height: 1.7;
 }
 
+/* ================================================================ */
+/* Input */
+/* ================================================================ */
+
 .input {
-    min-height: 45px;
+    min-height: 46px;
 
     display: flex;
     align-items: center;
@@ -348,7 +431,8 @@ const submit = async () => {
 
     background: rgba(0, 0, 0, 0.18);
 
-    transition: border-color var(--transition);
+    transition:
+        border-color var(--transition);
 }
 
 .input:focus-within {
@@ -359,10 +443,18 @@ const submit = async () => {
     flex-shrink: 0;
 
     color: #646b71;
+
+    transition:
+        color var(--transition);
+}
+
+.input:focus-within svg {
+    color: var(--orange);
 }
 
 .input input {
     width: 100%;
+    min-width: 0;
 
     border: 0;
     outline: 0;
@@ -371,20 +463,70 @@ const submit = async () => {
 
     background: transparent;
 
-    font-size: 10px;
+    font-family: inherit;
+    font-size: 12px;
+
+    line-height: 1.7;
 }
 
 .input input::placeholder {
     color: #555c62;
 }
 
+/* ================================================================ */
+/* Errors */
+/* ================================================================ */
+
 .field-error {
-    margin-top: 5px;
+    margin-top: 6px;
 
     color: var(--danger);
 
-    font-size: 8px;
+    font-size: 10px;
+
+    line-height: 1.7;
 }
+
+/* ================================================================ */
+/* Messages */
+/* ================================================================ */
+
+.message {
+    margin-bottom: 15px;
+
+    padding: 10px 11px;
+
+    display: flex;
+    align-items: center;
+
+    gap: 7px;
+
+    border-radius: 7px;
+
+    font-size: 10px;
+
+    line-height: 1.8;
+}
+
+.message-error {
+    color: var(--danger);
+
+    border: 1px solid rgba(255, 92, 92, 0.15);
+
+    background: rgba(255, 92, 92, 0.025);
+}
+
+.message-success {
+    color: var(--success);
+
+    border: 1px solid rgba(55, 214, 122, 0.15);
+
+    background: rgba(55, 214, 122, 0.025);
+}
+
+/* ================================================================ */
+/* Submit */
+/* ================================================================ */
 
 .submit-button {
     min-height: 46px;
@@ -395,14 +537,20 @@ const submit = async () => {
 
     gap: 8px;
 
+    margin-top: 2px;
+
     color: #fff;
 
+    border: 0;
     border-radius: 8px;
 
     background: var(--orange);
 
-    font-size: 10px;
+    font-family: inherit;
+    font-size: 12px;
     font-weight: 800;
+
+    line-height: 1.7;
 
     cursor: pointer;
 
@@ -413,6 +561,7 @@ const submit = async () => {
 
 .submit-button:hover:not(:disabled) {
     background: var(--orange-light);
+
     transform: translateY(-2px);
 }
 
@@ -422,36 +571,19 @@ const submit = async () => {
     cursor: wait;
 }
 
-.message {
-    margin-bottom: 15px;
-
-    padding: 10px 11px;
-
-    display: flex;
-    align-items: center;
-    gap: 7px;
-
-    border-radius: 7px;
-
-    font-size: 8px;
+.submit-button:focus-visible,
+.auth-logo:focus-visible {
+    outline: 2px solid var(--orange);
+    outline-offset: 4px;
 }
 
-.message-error {
-    color: var(--danger);
-
-    border: 1px solid rgba(255, 92, 92, 0.15);
-    background: rgba(255, 92, 92, 0.025);
-}
-
-.message-success {
-    color: var(--success);
-
-    border: 1px solid rgba(55, 214, 122, 0.15);
-    background: rgba(55, 214, 122, 0.025);
-}
+/* ================================================================ */
+/* Loader */
+/* ================================================================ */
 
 .loader {
-    animation: spin 0.8s linear infinite;
+    animation:
+        spin 0.8s linear infinite;
 }
 
 @keyframes spin {
@@ -460,9 +592,37 @@ const submit = async () => {
     }
 }
 
+/* ================================================================ */
+/* Responsive */
+/* ================================================================ */
+
 @media (max-width: 480px) {
+    .auth-page {
+        padding-inline: 14px;
+    }
+
     .auth-card {
         padding: 22px 18px;
+    }
+}
+
+/* ================================================================ */
+/* Reduced Motion */
+/* ================================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+    .input,
+    .input svg,
+    .submit-button {
+        transition: none;
+    }
+
+    .submit-button:hover:not(:disabled) {
+        transform: none;
+    }
+
+    .loader {
+        animation: none;
     }
 }
 </style>

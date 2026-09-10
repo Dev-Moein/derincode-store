@@ -1,6 +1,9 @@
 <script setup>
 import { reactive, ref } from 'vue'
-import { useRouter } from 'vue-router'
+import {
+    useRoute,
+    useRouter,
+} from 'vue-router'
 import {
     ArrowLeft,
     Mail,
@@ -11,7 +14,9 @@ import {
 import { useAuthStore } from '../stores/auth'
 
 const router = useRouter()
+const route = useRoute()
 const authStore = useAuthStore()
+
 const form = reactive({
     email: '',
     password: '',
@@ -35,42 +40,55 @@ const submit = async () => {
         return
     }
 
-   const redirect = route.query.redirect || '/'
+    const redirectQuery = route.query.redirect
 
-router.push(redirect)
+    const redirect =
+        typeof redirectQuery === 'string' &&
+        redirectQuery.startsWith('/') &&
+        !redirectQuery.startsWith('//')
+            ? redirectQuery
+            : '/'
+
+    await router.push(redirect)
 }
 </script>
 
 <template>
-    <main class="auth-page">
+    <main
+        class="auth-page"
+        aria-labelledby="login-title"
+    >
         <div class="auth-container">
 
             <RouterLink
                 to="/"
                 class="auth-logo"
+                aria-label="Derin Code - صفحه اصلی"
             >
                 <span>Derin</span><strong>Code</strong>
             </RouterLink>
 
-            <div class="auth-card">
+            <section class="auth-card">
 
-                <div class="auth-header">
+                <header class="auth-header">
                     <span class="auth-kicker">
                         Welcome Back
                     </span>
 
-                    <h1>
+                    <h1 id="login-title">
                         ورود به حساب
                     </h1>
 
                     <p>
                         برای ادامه وارد حساب کاربری خود شوید.
                     </p>
-                </div>
+                </header>
 
                 <div
                     v-if="localError"
                     class="form-error"
+                    role="alert"
+                    aria-live="assertive"
                 >
                     {{ localError }}
                 </div>
@@ -85,14 +103,22 @@ router.push(redirect)
                         </label>
 
                         <div class="input">
-                            <Mail :size="16" />
+                            <Mail
+                                :size="17"
+                                aria-hidden="true"
+                            />
 
                             <input
                                 id="email"
                                 v-model="form.email"
                                 type="email"
                                 autocomplete="email"
+                                inputmode="email"
+                                dir="ltr"
                                 placeholder="example@email.com"
+                                :aria-invalid="
+                                    Boolean(authStore.errors.email)
+                                "
                                 required
                             />
                         </div>
@@ -111,7 +137,10 @@ router.push(redirect)
                         </label>
 
                         <div class="input">
-                            <LockKeyhole :size="16" />
+                            <LockKeyhole
+                                :size="17"
+                                aria-hidden="true"
+                            />
 
                             <input
                                 id="password"
@@ -119,6 +148,9 @@ router.push(redirect)
                                 type="password"
                                 autocomplete="current-password"
                                 placeholder="رمز عبور"
+                                :aria-invalid="
+                                    Boolean(authStore.errors.password)
+                                "
                                 required
                             />
                         </div>
@@ -132,9 +164,7 @@ router.push(redirect)
                     </div>
 
                     <div class="form-options">
-                        <RouterLink
-                            to="/forgot-password"
-                        >
+                        <RouterLink to="/forgot-password">
                             فراموشی رمز عبور؟
                         </RouterLink>
 
@@ -147,6 +177,7 @@ router.push(redirect)
                         type="submit"
                         class="submit-button"
                         :disabled="authStore.loading"
+                        :aria-busy="authStore.loading"
                     >
                         <span v-if="!authStore.loading">
                             ورود
@@ -154,17 +185,20 @@ router.push(redirect)
 
                         <LoaderCircle
                             v-else
-                            :size="17"
+                            :size="18"
                             class="loader"
+                            aria-hidden="true"
                         />
 
                         <ArrowLeft
                             v-if="!authStore.loading"
-                            :size="16"
+                            :size="17"
+                            aria-hidden="true"
                         />
                     </button>
                 </form>
-            </div>
+
+            </section>
         </div>
     </main>
 </template>
@@ -202,9 +236,14 @@ router.push(redirect)
 
     direction: ltr;
 
+    color: inherit;
+
     font-family: var(--font-mono);
-    font-size: 20px;
+    font-size: 22px;
     font-weight: 800;
+    line-height: 1;
+
+    text-decoration: none;
 }
 
 .auth-logo span {
@@ -213,6 +252,12 @@ router.push(redirect)
 
 .auth-logo strong {
     color: var(--orange);
+}
+
+.auth-logo:focus-visible {
+    outline: 2px solid var(--orange);
+    outline-offset: 6px;
+    border-radius: 4px;
 }
 
 .auth-card {
@@ -237,13 +282,17 @@ router.push(redirect)
 }
 
 .auth-kicker {
+    display: inline-block;
+
     color: var(--orange);
 
     direction: ltr;
 
     font-family: var(--font-mono);
-
-    font-size: 8px;
+    font-size: 10px;
+    font-weight: 600;
+    line-height: 1.7;
+    letter-spacing: 0.03em;
 }
 
 .auth-header h1 {
@@ -253,21 +302,23 @@ router.push(redirect)
 
     font-size: 28px;
     font-weight: 900;
+    line-height: 1.45;
+    letter-spacing: -0.02em;
 }
 
 .auth-header p {
-    margin-top: 6px;
+    margin-top: 7px;
 
     color: var(--text-muted);
 
-    font-size: 10px;
+    font-size: 12px;
+    line-height: 2;
 }
 
 .auth-form {
     display: flex;
     flex-direction: column;
-
-    gap: 16px;
+    gap: 17px;
 }
 
 .field {
@@ -280,19 +331,20 @@ router.push(redirect)
 
     color: var(--text-secondary);
 
-    font-size: 9px;
+    font-size: 11px;
     font-weight: 700;
+    line-height: 1.7;
 }
 
 .input {
-    min-height: 45px;
+    min-height: 47px;
 
     display: flex;
     align-items: center;
 
-    gap: 9px;
+    gap: 10px;
 
-    padding-inline: 11px;
+    padding-inline: 12px;
 
     border: 1px solid var(--border);
     border-radius: 8px;
@@ -310,6 +362,12 @@ router.push(redirect)
     flex-shrink: 0;
 
     color: #646b71;
+
+    transition: color var(--transition);
+}
+
+.input:focus-within svg {
+    color: var(--orange);
 }
 
 .input input {
@@ -322,7 +380,9 @@ router.push(redirect)
 
     background: transparent;
 
-    font-size: 10px;
+    font-family: inherit;
+    font-size: 12px;
+    line-height: 1.7;
 }
 
 .input input::placeholder {
@@ -330,15 +390,17 @@ router.push(redirect)
 }
 
 .field-error {
-    margin-top: 5px;
+    margin-top: 6px;
 
     color: var(--danger);
 
-    font-size: 8px;
+    font-size: 10px;
+    line-height: 1.7;
 }
 
 .form-options {
     display: flex;
+    align-items: center;
     justify-content: space-between;
 
     margin-top: -3px;
@@ -347,7 +409,11 @@ router.push(redirect)
 .form-options a {
     color: var(--text-muted);
 
-    font-size: 8px;
+    font-size: 10px;
+    font-weight: 500;
+    line-height: 1.7;
+
+    text-decoration: none;
 
     transition: color var(--transition);
 }
@@ -360,10 +426,16 @@ router.push(redirect)
     color: var(--orange);
 }
 
+.form-options a:focus-visible {
+    outline: 2px solid var(--orange);
+    outline-offset: 4px;
+    border-radius: 3px;
+}
+
 .form-error {
     margin-bottom: 15px;
 
-    padding: 10px 11px;
+    padding: 11px 12px;
 
     color: var(--danger);
 
@@ -372,11 +444,12 @@ router.push(redirect)
 
     background: rgba(255, 92, 92, 0.025);
 
-    font-size: 8px;
+    font-size: 10px;
+    line-height: 1.8;
 }
 
 .submit-button {
-    min-height: 46px;
+    min-height: 47px;
 
     display: flex;
     align-items: center;
@@ -388,12 +461,15 @@ router.push(redirect)
 
     color: #fff;
 
+    border: 0;
     border-radius: 8px;
 
     background: var(--orange);
 
-    font-size: 10px;
+    font-family: inherit;
+    font-size: 12px;
     font-weight: 800;
+    line-height: 1.7;
 
     cursor: pointer;
 
@@ -406,6 +482,11 @@ router.push(redirect)
     background: var(--orange-light);
 
     transform: translateY(-2px);
+}
+
+.submit-button:focus-visible {
+    outline: 2px solid var(--orange);
+    outline-offset: 4px;
 }
 
 .submit-button:disabled {
@@ -430,7 +511,30 @@ router.push(redirect)
     }
 
     .auth-card {
-        padding: 22px 18px;
+        padding: 23px 18px;
+    }
+
+    .auth-header h1 {
+        font-size: 25px;
+    }
+
+    .form-options a {
+        font-size: 10px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .loader {
+        animation: none;
+    }
+
+    .input svg,
+    .submit-button {
+        transition: none;
+    }
+
+    .submit-button:hover:not(:disabled) {
+        transform: none;
     }
 }
 </style>

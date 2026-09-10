@@ -4,81 +4,147 @@ services:
     build:
       context: ./docker/php
       dockerfile: Dockerfile
+
     container_name: portfolio_app
+
     restart: unless-stopped
+
     working_dir: /var/www/html
+
     volumes:
       - ./backend:/var/www/html
+
     depends_on:
       mysql:
         condition: service_healthy
+
       redis:
         condition: service_started
+
     networks:
       - portfolio
 
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    container_name: portfolio-frontend
-    working_dir: /app
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
-    ports:
-      - "5173:5173"
-    depends_on:
-      - app
-      
+
+
   worker:
+
     build:
       context: ./docker/php
       dockerfile: Dockerfile
+
     container_name: portfolio_worker
+
     restart: unless-stopped
+
     working_dir: /var/www/html
+
     volumes:
       - ./backend:/var/www/html
+
     depends_on:
+
       mysql:
         condition: service_healthy
+
       redis:
         condition: service_started
-    command: php artisan queue:work redis --sleep=3 --tries=3 --timeout=90
+
+    command: >
+      php artisan queue:work redis
+      --sleep=3
+      --tries=3
+      --timeout=90
+      --max-time=3600
+
     networks:
       - portfolio
+
+
+
+  frontend:
+
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+
+    container_name: portfolio-frontend
+
+    working_dir: /app
+
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+
+    ports:
+      - "5173:5173"
+
+    depends_on:
+      - app
+
+    networks:
+      - portfolio
+
 
 
   nginx:
+
     image: nginx:1.27-alpine
+
     container_name: portfolio_nginx
+
     restart: unless-stopped
+
     ports:
       - "8000:80"
+
     volumes:
+
       - ./backend:/var/www/html
+
       - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+
     depends_on:
+
       - app
+
     networks:
+
       - portfolio
 
 
+
   mysql:
+
     image: mysql:8.4
+
     container_name: portfolio_mysql
+
     restart: unless-stopped
+
+
     environment:
+
       MYSQL_DATABASE: portfolio
+
       MYSQL_USER: portfolio
+
       MYSQL_PASSWORD: secret
+
       MYSQL_ROOT_PASSWORD: root
+
+
     ports:
+
       - "3307:3306"
+
+
     volumes:
+
       - mysql_data:/var/lib/mysql
+
+
     healthcheck:
+
       test:
         [
           "CMD",
@@ -89,41 +155,57 @@ services:
           "-uportfolio",
           "-psecret"
         ]
+
       interval: 5s
+
       timeout: 5s
+
       retries: 10
+
+
     networks:
+
       - portfolio
+
+
 
 
   redis:
+
     image: redis:7-alpine
+
     container_name: portfolio_redis
+
     restart: unless-stopped
+
+
     ports:
+
       - "6380:6379"
+
+
     volumes:
+
       - redis_data:/data
+
+
     networks:
+
       - portfolio
 
 
-  mailpit:
-    image: axllent/mailpit:latest
-    container_name: portfolio_mailpit
-    restart: unless-stopped
-    ports:
-      - "8025:8025"
-      - "1025:1025"
-    networks:
-      - portfolio
 
 
 networks:
+
   portfolio:
+
     driver: bridge
 
 
+
 volumes:
+
   mysql_data:
+
   redis_data:

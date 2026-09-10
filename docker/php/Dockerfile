@@ -1,6 +1,8 @@
 FROM php:8.4-fpm
 
+
 WORKDIR /var/www/html
+
 
 RUN apt-get update && apt-get install -y \
     git \
@@ -13,7 +15,6 @@ RUN apt-get update && apt-get install -y \
     libfreetype6-dev \
     libonig-dev \
     libicu-dev \
-    libpq-dev \
     && docker-php-ext-configure gd \
         --with-freetype \
         --with-jpeg \
@@ -29,10 +30,18 @@ RUN apt-get update && apt-get install -y \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
+
+
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+
+
 
 COPY php.ini /usr/local/etc/php/conf.d/custom.ini
 
+
+
 EXPOSE 9000
+
+
 
 CMD ["php-fpm"]
