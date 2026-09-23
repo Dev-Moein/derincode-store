@@ -15,6 +15,7 @@ import {
 } from 'lucide-vue-next'
 
 import { useProjectsStore } from '../stores/projects'
+import PublicLayout from '../layouts/PublicLayout.vue'
 
 
 /*
@@ -433,6 +434,7 @@ const setFilter = (filter) => {
 </script>
 <template>
 
+<PublicLayout>
 <main
     class="projects-page"
     aria-labelledby="projects-page-title"
@@ -1226,8 +1228,6 @@ const setFilter = (filter) => {
 
 
         </div>
-
-
     </section>
 
 
@@ -1317,7 +1317,7 @@ const setFilter = (filter) => {
 
 
 </main>
-
+</PublicLayout>
 
 </template>
 <style scoped>

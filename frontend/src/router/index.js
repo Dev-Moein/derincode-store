@@ -123,7 +123,11 @@ const routes = [
         name: 'forgot-password',
         component: ForgotPassword,
     },
-
+        {
+    path: '/about',
+    name: 'about',
+    component: () => import('../pages/about.vue'),
+},
     {
         path: '/verify-otp',
         name: 'verify-otp',
