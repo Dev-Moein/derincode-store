@@ -88,6 +88,15 @@ class ProjectFileService implements ProjectFileServiceInterface
         return Storage::disk(self::DISK)->delete($oldPath);
     }
 
+    public function removeStoredFile(?string $path): bool
+    {
+        if (! $path) {
+            return true;
+        }
+
+        return Storage::disk(self::DISK)->delete($path);
+    }
+
     public function exists(
         Project $project
     ): bool {
