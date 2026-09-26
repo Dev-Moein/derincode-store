@@ -56,12 +56,6 @@ class RepositoryServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        /*
-        |--------------------------------------------------------------------------
-        | Repositories
-        |--------------------------------------------------------------------------
-        */
-
         $this->app->bind(
             UserRepositoryInterface::class,
             UserRepository::class
@@ -71,12 +65,6 @@ class RepositoryServiceProvider extends ServiceProvider
             ProjectRepositoryInterface::class,
             ProjectRepository::class
         );
-
-        /*
-        |--------------------------------------------------------------------------
-        | Services
-        |--------------------------------------------------------------------------
-        */
 
         $this->app->bind(
             AuthServiceInterface::class,
@@ -92,12 +80,6 @@ class RepositoryServiceProvider extends ServiceProvider
             ProjectServiceInterface::class,
             ProjectService::class
         );
-
-        /*
-        |--------------------------------------------------------------------------
-        | Notifications
-        |--------------------------------------------------------------------------
-        */
 
         $this->app->bind(
             OtpNotificationInterface::class,
@@ -118,6 +100,7 @@ class RepositoryServiceProvider extends ServiceProvider
             ProjectRequestRepositoryInterface::class,
             ProjectRequestRepository::class
         );
+
         $this->app->bind(
             ProjectRequestServiceInterface::class,
             ProjectRequestService::class
@@ -137,14 +120,12 @@ class RepositoryServiceProvider extends ServiceProvider
             PaymentGatewayInterface::class,
             ZarinpalService::class
         );
+
         $this->app->bind(
             ProjectFileServiceInterface::class,
-            ProjectFileService::class,
+            ProjectFileService::class
         );
-        $this->app->bind(
-            DownloadServiceInterface::class,
-            DownloadService::class,
-        );
+
         $this->app->bind(
             DownloadRepositoryInterface::class,
             DownloadRepository::class
@@ -154,27 +135,31 @@ class RepositoryServiceProvider extends ServiceProvider
             DownloadServiceInterface::class,
             DownloadService::class
         );
-        $this->app->bind(
-         ContactRepositoryInterface::class,
-          ContactRepository::class,
-           );
-         $this->app->bind(
-         ContactServiceInterface::class,
-          ContactService::class,
-          );
-          $this->app->bind(
-    AdminDashboardRepositoryInterface::class,
-    AdminDashboardRepository::class
-);
 
-$this->app->bind(
-    AdminDashboardServiceInterface::class,
-    AdminDashboardService::class
-);
-$this->app->bind(
-    AdminUserServiceInterface::class,
-    AdminUserService::class
-);
+        $this->app->bind(
+            ContactRepositoryInterface::class,
+            ContactRepository::class
+        );
+
+        $this->app->bind(
+            ContactServiceInterface::class,
+            ContactService::class
+        );
+
+        $this->app->bind(
+            AdminDashboardRepositoryInterface::class,
+            AdminDashboardRepository::class
+        );
+
+        $this->app->bind(
+            AdminDashboardServiceInterface::class,
+            AdminDashboardService::class
+        );
+
+        $this->app->bind(
+            AdminUserServiceInterface::class,
+            AdminUserService::class
+        );
     }
 
     /**
@@ -182,49 +167,28 @@ $this->app->bind(
      */
     public function boot(): void
     {
-        /*
-        |--------------------------------------------------------------------------
-        | Login Rate Limiter
-        |--------------------------------------------------------------------------
-        */
-
         RateLimiter::for('login', function (Request $request) {
-            return Limit::perMinute(5)
-                ->by(
-                    strtolower(
-                        $request->input('email', '')
-                    ).'|'.$request->ip()
-                );
+            return Limit::perMinute(5)->by(
+                strtolower(
+                    $request->input('email', '')
+                ).'|'.$request->ip()
+            );
         });
-
-        /*
-        |--------------------------------------------------------------------------
-        | Forgot Password Rate Limiter
-        |--------------------------------------------------------------------------
-        */
 
         RateLimiter::for('forgot-password', function (Request $request) {
-            return Limit::perMinute(3)
-                ->by(
-                    strtolower(
-                        $request->input('email', '')
-                    ).'|'.$request->ip()
-                );
+            return Limit::perMinute(3)->by(
+                strtolower(
+                    $request->input('email', '')
+                ).'|'.$request->ip()
+            );
         });
 
-        /*
-        |--------------------------------------------------------------------------
-        | Verify OTP Rate Limiter
-        |--------------------------------------------------------------------------
-        */
-
         RateLimiter::for('verify-otp', function (Request $request) {
-            return Limit::perMinutes(5, 5)
-                ->by(
-                    strtolower(
-                        $request->input('email', '')
-                    ).'|'.$request->ip()
-                );
+            return Limit::perMinutes(5, 5)->by(
+                strtolower(
+                    $request->input('email', '')
+                ).'|'.$request->ip()
+            );
         });
     }
 }
