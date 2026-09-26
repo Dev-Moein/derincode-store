@@ -89,16 +89,16 @@ class ProjectService implements ProjectServiceInterface
     public function delete(
         Project $project
     ): bool {
-        return DB::transaction(function () use (
-            $project
-        ) {
-            $this->projectFileService->delete(
-                $project
-            );
+        $filePath = $project->file_path;
 
-            return $this->projectRepository->delete(
-                $project
-            );
+        $deleted = DB::transaction(function () use ($project) {
+            return $this->projectRepository->delete($project);
         });
+
+        if ($deleted) {
+            $this->projectFileService->removeStoredFile($filePath);
+        }
+
+        return $deleted;
     }
 }

@@ -101,6 +101,15 @@ class ZarinpalService implements PaymentGatewayInterface
 
 
 
+    public function paymentUrl(Payment $payment): ?string
+    {
+        if (! $payment->authority) {
+            return null;
+        }
+
+        return $this->paymentUrl . $payment->authority;
+    }
+
     public function verify(
         Payment $payment,
         string $authority

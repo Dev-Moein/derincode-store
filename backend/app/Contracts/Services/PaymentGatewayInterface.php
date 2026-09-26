@@ -15,4 +15,6 @@ interface PaymentGatewayInterface
         Payment $payment,
         string $authority
     ): array;
+
+    public function paymentUrl(Payment $payment): ?string;
 }
