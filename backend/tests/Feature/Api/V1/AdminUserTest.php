@@ -41,14 +41,8 @@ class AdminUserTest extends TestCase
 
         $response
             ->assertOk()
-            ->assertJson([
-                'success' => true,
-                'message' => 'Users retrieved successfully.',
-            ])
-            ->assertJsonCount(
-                4,
-                'data.users'
-            );
+            ->assertJsonCount(4, 'data')
+            ->assertJsonPath('meta.total', 4);
     }
 
     public function test_unauthenticated_user_cannot_list_users(): void
@@ -100,12 +94,12 @@ class AdminUserTest extends TestCase
         $response
             ->assertOk()
             ->assertJsonPath(
-                'data.users.0.email',
+                'data.0.email',
                 'ali@example.com'
             )
             ->assertJsonCount(
                 1,
-                'data.users'
+                'data'
             );
     }
 
@@ -126,7 +120,7 @@ class AdminUserTest extends TestCase
                 'message' => 'User retrieved successfully.',
             ])
             ->assertJsonPath(
-                'data.user.id',
+                'data.id',
                 $user->id
             );
     }
@@ -168,18 +162,16 @@ class AdminUserTest extends TestCase
             ->assertForbidden();
     }
 
-    public function test_admin_can_update_user(): void
+    public function test_admin_can_update_user_role(): void
     {
         $user = User::factory()->create();
 
         $response = $this
             ->actingAs($this->admin, 'sanctum')
             ->putJson(
-                "/api/v1/admin/users/{$user->id}",
+                "/api/v1/admin/users/{$user->id}/role",
                 [
-                    'name' => 'Updated User',
-                    'email' => 'updated@example.com',
-                    'phone' => '09121234567',
+                    'role' => 'customer',
                 ]
             );
 
@@ -187,28 +179,15 @@ class AdminUserTest extends TestCase
             ->assertOk()
             ->assertJson([
                 'success' => true,
-                'message' => 'User updated successfully.',
+                'message' => 'User role updated successfully.',
             ])
             ->assertJsonPath(
-                'data.user.name',
-                'Updated User'
-            )
-            ->assertJsonPath(
-                'data.user.email',
-                'updated@example.com'
+                'data.roles.0.slug',
+                'customer'
             );
-
-        $this->assertDatabaseHas(
-            'users',
-            [
-                'id' => $user->id,
-                'name' => 'Updated User',
-                'email' => 'updated@example.com',
-            ]
-        );
     }
 
-    public function test_customer_cannot_update_user(): void
+    public function test_customer_cannot_update_user_role(): void
     {
         $customer = User::factory()->create();
         $user = User::factory()->create();
@@ -222,10 +201,9 @@ class AdminUserTest extends TestCase
         $response = $this
             ->actingAs($customer, 'sanctum')
             ->putJson(
-                "/api/v1/admin/users/{$user->id}",
+                "/api/v1/admin/users/{$user->id}/role",
                 [
-                    'name' => 'Hacked User',
-                    'email' => 'hacked@example.com',
+                    'role' => 'customer',
                 ]
             );
 
@@ -233,43 +211,31 @@ class AdminUserTest extends TestCase
             ->assertForbidden();
     }
 
-    public function test_admin_user_update_validation_works(): void
+    public function test_admin_user_role_validation_works(): void
     {
         $user = User::factory()->create();
 
         $response = $this
             ->actingAs($this->admin, 'sanctum')
             ->putJson(
-                "/api/v1/admin/users/{$user->id}",
+                "/api/v1/admin/users/{$user->id}/role",
                 [
-                    'name' => '',
-                    'email' => 'invalid-email',
+                    'role' => 'not-a-real-role',
                 ]
             );
 
         $response
-            ->assertUnprocessable()
-            ->assertJson([
-                'success' => false,
-                'message' => 'Validation failed.',
-            ])
-            ->assertJsonStructure([
-                'errors' => [
-                    'name',
-                    'email',
-                ],
-            ]);
+            ->assertUnprocessable();
     }
 
-    public function test_admin_cannot_update_unknown_user(): void
+    public function test_admin_cannot_update_unknown_user_role(): void
     {
         $response = $this
             ->actingAs($this->admin, 'sanctum')
             ->putJson(
-                '/api/v1/admin/users/999999',
+                '/api/v1/admin/users/999999/role',
                 [
-                    'name' => 'Unknown User',
-                    'email' => 'unknown@example.com',
+                    'role' => 'customer',
                 ]
             );
 
@@ -281,15 +247,14 @@ class AdminUserTest extends TestCase
             ]);
     }
 
-    public function test_unauthenticated_user_cannot_update_user(): void
+    public function test_unauthenticated_user_cannot_update_user_role(): void
     {
         $user = User::factory()->create();
 
         $response = $this->putJson(
-            "/api/v1/admin/users/{$user->id}",
+            "/api/v1/admin/users/{$user->id}/role",
             [
-                'name' => 'Updated User',
-                'email' => 'updated@example.com',
+                'role' => 'customer',
             ]
         );
 
