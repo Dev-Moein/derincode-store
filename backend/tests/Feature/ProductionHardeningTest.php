@@ -90,12 +90,19 @@ class ProductionHardeningTest extends TestCase
             'application/octet-stream'
         );
 
-        $this->expectException(\RuntimeException::class);
+        try {
+            app(ProjectFileService::class)->replace(
+                $project,
+                $invalidFile
+            );
 
-        app(ProjectFileService::class)->replace(
-            $project,
-            $invalidFile
-        );
+            $this->fail('Expected invalid ZIP validation to throw.');
+        } catch (\RuntimeException $exception) {
+            $this->assertSame(
+                'Only valid ZIP files are allowed.',
+                $exception->getMessage()
+            );
+        }
 
         Storage::disk('local')->assertExists(
             'projects/files/old.zip'
