@@ -14,49 +14,27 @@ class ProjectFileService implements ProjectFileServiceInterface
 
     private const DIRECTORY = 'projects/files';
 
+    private const MAX_SIZE_BYTES = 512 * 1024 * 1024;
+
     public function store(
         Project $project,
         UploadedFile $file
     ): Project {
-        if (! $file->isValid()) {
-            throw new RuntimeException(
-                'The uploaded project file is invalid.'
-            );
+        $this->validateFile($file);
+
+        $path = $this->storeFile($project, $file);
+
+        try {
+            $project->update([
+                'file_path' => $path,
+                'file_name' => $file->getClientOriginalName(),
+                'file_size' => $file->getSize(),
+            ]);
+        } catch (\Throwable $exception) {
+            Storage::disk(self::DISK)->delete($path);
+
+            throw $exception;
         }
-
-        $extension = strtolower(
-            $file->getClientOriginalExtension()
-        );
-
-        if ($extension !== 'zip') {
-            throw new RuntimeException(
-                'Only ZIP files are allowed.'
-            );
-        }
-
-        $filename = sprintf(
-            '%s-%s.zip',
-            $project->id,
-            uniqid('', true)
-        );
-
-        $path = $file->storeAs(
-            self::DIRECTORY,
-            $filename,
-            self::DISK
-        );
-
-        if (! $path) {
-            throw new RuntimeException(
-                'Unable to store project file.'
-            );
-        }
-
-        $project->update([
-            'file_path' => $path,
-            'file_name' => $file->getClientOriginalName(),
-            'file_size' => $file->getSize(),
-        ]);
 
         return $project->fresh();
     }
@@ -65,30 +43,49 @@ class ProjectFileService implements ProjectFileServiceInterface
         Project $project,
         UploadedFile $file
     ): Project {
-        $this->deleteFile($project);
+        $this->validateFile($file);
 
-        return $this->store(
-            $project,
-            $file
-        );
+        $disk = Storage::disk(self::DISK);
+        $oldPath = $project->file_path;
+        $newPath = $this->storeFile($project, $file);
+
+        try {
+            $project->update([
+                'file_path' => $newPath,
+                'file_name' => $file->getClientOriginalName(),
+                'file_size' => $file->getSize(),
+            ]);
+        } catch (\Throwable $exception) {
+            $disk->delete($newPath);
+
+            throw $exception;
+        }
+
+        // Delete only after the database points to the new file. If cleanup
+        // fails, the old file remains harmlessly orphaned and can be cleaned
+        // up later without breaking the active download.
+        if ($oldPath && $oldPath !== $newPath) {
+            $disk->delete($oldPath);
+        }
+
+        return $project->fresh();
     }
 
     public function delete(
         Project $project
     ): bool {
-        $deleted = true;
-
-        if ($project->file_path) {
-            $deleted = $this->deleteFile($project);
-        }
-
+        $oldPath = $project->file_path;
         $project->update([
             'file_path' => null,
             'file_name' => null,
             'file_size' => null,
         ]);
 
-        return $deleted;
+        if (! $oldPath) {
+            return true;
+        }
+
+        return Storage::disk(self::DISK)->delete($oldPath);
     }
 
     public function exists(
@@ -117,14 +114,65 @@ class ProjectFileService implements ProjectFileServiceInterface
             ->path($project->file_path);
     }
 
-    private function deleteFile(
-        Project $project
-    ): bool {
-        if (! $project->file_path) {
-            return true;
+    private function validateFile(UploadedFile $file): void
+    {
+        if (! $file->isValid()) {
+            throw new RuntimeException(
+                'The uploaded project file is invalid.'
+            );
         }
 
-        return Storage::disk(self::DISK)
-            ->delete($project->file_path);
+        if ($file->getSize() > self::MAX_SIZE_BYTES) {
+            throw new RuntimeException(
+                'The uploaded project file is too large.'
+            );
+        }
+
+        $extension = strtolower(
+            $file->getClientOriginalExtension()
+        );
+
+        $mimeType = strtolower(
+            (string) $file->getMimeType()
+        );
+
+        $allowedMimeTypes = [
+            'application/zip',
+            'application/x-zip-compressed',
+        ];
+
+        if (
+            $extension !== 'zip' ||
+            ! in_array($mimeType, $allowedMimeTypes, true)
+        ) {
+            throw new RuntimeException(
+                'Only valid ZIP files are allowed.'
+            );
+        }
+    }
+
+    private function storeFile(
+        Project $project,
+        UploadedFile $file
+    ): string {
+        $filename = sprintf(
+            '%s-%s.zip',
+            $project->id,
+            bin2hex(random_bytes(16))
+        );
+
+        $path = $file->storeAs(
+            self::DIRECTORY,
+            $filename,
+            self::DISK
+        );
+
+        if (! $path) {
+            throw new RuntimeException(
+                'Unable to store project file.'
+            );
+        }
+
+        return $path;
     }
 }
