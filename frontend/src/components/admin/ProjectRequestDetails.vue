@@ -206,6 +206,20 @@ const submit = async () => {
             {{ store.error }}
         </div>
 
+        <div
+            v-if="extraErrors().length"
+            class="error-box"
+            role="alert"
+            aria-live="assertive"
+        >
+            <strong>خطاهای اعتبارسنجی:</strong>
+            <ul>
+                <li v-for="item in extraErrors()" :key="item.key">
+                    {{ item.key }}: {{ item.message }}
+                </li>
+            </ul>
+        </div>
+
         <!-- User -->
         <section
             class="info-section"
