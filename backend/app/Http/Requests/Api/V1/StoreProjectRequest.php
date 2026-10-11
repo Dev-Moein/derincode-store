@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Api\V1;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreProjectRequest extends FormRequest
 {
@@ -49,9 +50,7 @@ class StoreProjectRequest extends FormRequest
 
             'currency' => [
                 'required',
-                'string',
-                'size:3',
-                'uppercase',
+                Rule::in(['IRR', 'USD', 'EUR']),
             ],
 
             'is_for_sale' => [
