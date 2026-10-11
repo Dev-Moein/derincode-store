@@ -29,6 +29,17 @@ const form = reactive({
 
 const initialized = ref(false)
 
+const fieldError = (key) => {
+    const value = store.errors?.[key]
+    return Array.isArray(value) ? value[0] : (typeof value === 'string' ? value : '')
+}
+
+const extraErrors = () => Object.entries(store.errors || {})
+    .filter(([key]) => !['status', 'admin_note'].includes(key))
+    .flatMap(([key, value]) => (Array.isArray(value) ? value : [value])
+        .filter(Boolean)
+        .map(message => ({ key, message })))
+
 const statuses = [
     {
         value: 'pending',
@@ -348,11 +359,8 @@ const submit = async () => {
                     id="request-status"
                     v-model="form.status"
                     :disabled="store.saving"
-                    :aria-describedby="
-                        store.error
-                            ? 'request-details-error'
-                            : undefined
-                    "
+                    :aria-invalid="!!fieldError('status')"
+                    :aria-describedby="fieldError('status') ? 'request-status-error' : (store.error ? 'request-details-error' : undefined)"
                 >
                     <option
                         v-for="item in statuses"
@@ -362,6 +370,9 @@ const submit = async () => {
                         {{ item.label }}
                     </option>
                 </select>
+                <span v-if="fieldError('status')" id="request-status-error" class="field-error">
+                    {{ fieldError('status') }}
+                </span>
             </div>
 
             <div class="field">
@@ -376,7 +387,13 @@ const submit = async () => {
                     maxlength="10000"
                     :disabled="store.saving"
                     placeholder="یادداشت داخلی برای این درخواست..."
+                    :aria-invalid="!!fieldError('admin_note')"
+                    :aria-describedby="fieldError('admin_note') ? 'request-admin-note-error' : undefined"
                 ></textarea>
+
+                <span v-if="fieldError('admin_note')" id="request-admin-note-error" class="field-error">
+                    {{ fieldError('admin_note') }}
+                </span>
 
                 <small>
                     این یادداشت در پنل و پاسخ درخواست
@@ -519,6 +536,22 @@ const submit = async () => {
     outline: 2px solid var(--orange);
 
     outline-offset: 3px;
+}
+
+.error-box ul {
+    margin: 6px 0 0;
+    padding-inline-start: 20px;
+}
+
+.field-error {
+    margin-top: 5px;
+    color: var(--danger);
+    font-size: 10px;
+    line-height: 1.7;
+}
+
+[aria-invalid="true"] {
+    border-color: var(--danger) !important;
 }
 
 .error-box {
