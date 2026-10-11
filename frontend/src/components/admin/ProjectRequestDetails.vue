@@ -38,7 +38,7 @@ const extraErrors = () => Object.entries(store.errors || {})
     .filter(([key]) => !['status', 'admin_note'].includes(key))
     .flatMap(([key, value]) => (Array.isArray(value) ? value : [value])
         .filter(Boolean)
-        .map(message => ({ key, message })))
+        .map((message, index) => ({ key: `${key}-${index}`, message })))
 
 const statuses = [
     {
