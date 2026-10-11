@@ -51,8 +51,6 @@ const validationLabels = {
     status: 'وضعیت',
     file: 'فایل پروژه',
     images: 'تصاویر',
-    'images.0': 'تصویر اول',
-    'images.*': 'تصاویر',
 }
 
 const fieldError = (key) => {
@@ -66,7 +64,7 @@ const extraErrors = () => Object.entries(store.errors || {})
         .filter(Boolean)
         .map(message => ({
             key,
-            label: validationLabels[key] || key,
+            label: key.startsWith('images.') ? 'تصویر' : (validationLabels[key] || key),
             message,
         })))
 
