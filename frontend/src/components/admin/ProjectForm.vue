@@ -62,8 +62,8 @@ const extraErrors = () => Object.entries(store.errors || {})
     .filter(([key]) => !(key in validationLabels))
     .flatMap(([key, value]) => (Array.isArray(value) ? value : [value])
         .filter(Boolean)
-        .map(message => ({
-            key,
+        .map((message, index) => ({
+            key: `${key}-${index}`,
             label: key.startsWith('images.') ? 'تصویر' : (validationLabels[key] || key),
             message,
         })))
