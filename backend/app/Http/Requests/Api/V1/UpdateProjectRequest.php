@@ -56,9 +56,7 @@ class UpdateProjectRequest extends FormRequest
 
             'currency' => [
                 'sometimes',
-                'string',
-                'size:3',
-                'uppercase',
+                Rule::in(['IRR', 'USD', 'EUR']),
             ],
 
             'is_for_sale' => [
