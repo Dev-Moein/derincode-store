@@ -344,7 +344,11 @@ const logout = async () => {
 }
 
 .navbar {
-  position: relative;
+  margin: 2rem 50%;
+
+  transform: translate(50%, -50%);
+
+  position: fixed;
 
   min-height: 68px;
 
@@ -362,7 +366,7 @@ const logout = async () => {
 
   border-radius: 16px;
 
-  background: rgba(8, 10, 12, 0.84);
+  background: rgba(8, 10, 12, 0.64);
 
   backdrop-filter: blur(18px);
 
@@ -378,7 +382,7 @@ const logout = async () => {
 
   font-family: var(--font-mono);
 
-  font-size: 21px;
+  font-size: 23px;
 
   font-weight: 800;
 
@@ -412,7 +416,7 @@ const logout = async () => {
 
   color: var(--text-secondary);
 
-  font-size: 12px;
+  font-size: 16px;
 
   font-weight: 600;
 
