@@ -1,3 +1,4 @@
+
 @import './variables.css';
 
 *,
@@ -11,12 +12,12 @@
 html {
     scroll-behavior: smooth;
     background: var(--bg-primary);
+    font-size: 17px;
 }
 
 body {
     min-width: 320px;
     min-height: 100vh;
-
     overflow-x: hidden;
 
     background:
@@ -28,11 +29,9 @@ body {
         var(--bg-primary);
 
     color: var(--text-primary);
-
     font-family: var(--font-sans);
-    font-size: 16px;
-    line-height: 1.8;
-
+    font-size: 17px;
+    line-height: 1.85;
     direction: rtl;
 
     text-rendering: optimizeLegibility;
@@ -120,11 +119,13 @@ main {
 
 .section-title {
     color: var(--text-primary);
-    line-height: 1.25;
+    line-height: 1.35;
 }
 
 .section-description {
     color: var(--text-secondary);
+    font-size: 17px;
+    line-height: 1.9;
 }
 
 .btn {
@@ -133,13 +134,14 @@ main {
     justify-content: center;
     gap: 10px;
 
-    min-height: 46px;
-    padding-inline: 18px;
+    min-height: 48px;
+    padding-inline: 20px;
 
     border-radius: var(--radius-sm);
 
-    font-size: 13px;
+    font-size: 15px;
     font-weight: 700;
+    line-height: 1.5;
 
     cursor: pointer;
 
@@ -188,6 +190,14 @@ main {
 
     .section {
         padding: 72px 0;
+    }
+
+    body {
+        font-size: 16px;
+    }
+
+    .section-description {
+        font-size: 16px;
     }
 }
 

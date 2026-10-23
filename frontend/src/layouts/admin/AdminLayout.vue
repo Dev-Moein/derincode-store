@@ -830,4 +830,35 @@ const logout = async () => {
         transition: none;
     }
 }
+
+/* فقط لینک دقیقاً مطابق مسیر فعلی انتخاب شود */
+.nav-link.router-link-active {
+    color: #777;
+    border-color: transparent;
+    background: transparent;
+    box-shadow: none;
+}
+
+.nav-link.router-link-active svg {
+    color: #555;
+}
+
+/* رنگ نارنجی فقط برای مسیر دقیق فعلی */
+.nav-link.router-link-exact-active {
+    color: #fff;
+    border-color: rgba(255, 106, 0, 0.16);
+
+    background: linear-gradient(
+        90deg,
+        rgba(255, 106, 0, 0.12),
+        rgba(255, 106, 0, 0.035)
+    );
+
+    box-shadow: inset -2px 0 0 #ff6a00;
+}
+
+.nav-link.router-link-exact-active svg {
+    color: #ff6a00;
+}
+
 </style>
