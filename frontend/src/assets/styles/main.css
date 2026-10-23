@@ -1,6 +1,29 @@
 
 @import './variables.css';
 
+
+/* 
+================
+Fonts 
+================
+*/
+@font-face {
+  font-family: "Farsi-Digit";
+  src:
+    url(../fonts/vazir-font-v16.1.0/Farsi-Digits-Without-Latin/Vazir-Medium-FD-WOL.woff2)
+      format("woff2"),
+    url(../fonts/vazir-font-v16.1.0/Farsi-Digits-Without-Latin/Vazir-Medium-FD-WOL.woff)
+      format("woff"),
+    url(../fonts/vazir-font-v16.1.0/Farsi-Digits-Without-Latin/Vazir-Medium-FD-WOL.ttf)
+      format("truetype");
+}
+
+:root {
+    --ff-primary: "Farsi-Digit", sans-serif;
+}
+
+
+
 *,
 *::before,
 *::after {
@@ -12,7 +35,11 @@
 html {
     scroll-behavior: smooth;
     background: var(--bg-primary);
+<<<<<<< HEAD
     font-size: 17px;
+=======
+
+>>>>>>> e454c9dbf8fd71620fa57c788aab53ddf53b3064
 }
 
 body {
@@ -29,9 +56,17 @@ body {
         var(--bg-primary);
 
     color: var(--text-primary);
+<<<<<<< HEAD
     font-family: var(--font-sans);
     font-size: 17px;
     line-height: 1.85;
+=======
+
+    font-family: var(--ff-primary);
+    font-size: 16px;
+    line-height: 1.8;
+
+>>>>>>> e454c9dbf8fd71620fa57c788aab53ddf53b3064
     direction: rtl;
 
     text-rendering: optimizeLegibility;
@@ -43,7 +78,7 @@ button,
 input,
 textarea,
 select {
-    font-family: inherit;
+    font-family: var(--ff-primary);
 }
 
 button,

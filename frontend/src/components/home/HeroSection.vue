@@ -578,7 +578,7 @@ const goToSection = async (hash) => {
 
     border-radius: 8px;
 
-    font-family: inherit;
+    font-family: var(--ff-primary);
 
     font-size: 12px;
 
