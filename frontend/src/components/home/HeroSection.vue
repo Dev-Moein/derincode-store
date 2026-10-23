@@ -156,7 +156,7 @@ const goToSection = async (hash) => {
                     <div
                         class="tech-logo laravel"
                     >
-                        <Code2 :size="21" />
+                        <Code2 :size="23" />
                     </div>
 
                     <span>
@@ -702,9 +702,9 @@ const goToSection = async (hash) => {
 
 
 .technology-card {
-    width: 67px;
+    width: 75px;
 
-    min-height: 67px;
+    min-height: 75px;
 
     display: flex;
 
@@ -741,7 +741,8 @@ const goToSection = async (hash) => {
 
 .technology-card:hover {
     transform:
-        translateY(-4px);
+        translateY(-4px), scale(1.05);
+        
 
     border-color:
         var(--border-orange);
@@ -753,9 +754,9 @@ const goToSection = async (hash) => {
 
 
 .tech-logo {
-    width: 27px;
+    width: 30px;
 
-    height: 27px;
+    height: 30px;
 
     display: flex;
 
@@ -776,7 +777,7 @@ const goToSection = async (hash) => {
 .technology-card > span {
     color: #a3a7ab;
 
-    font-size: 8px;
+    font-size: 10px;
 }
 
 
