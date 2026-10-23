@@ -30,6 +30,7 @@ class AdminUserResource extends JsonResource
                             return [
                                 'id' => $role->id,
                                 'name' => $role->name,
+                                'slug' => $role->slug,
                             ];
                         }
                     );

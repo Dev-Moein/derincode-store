@@ -503,6 +503,7 @@ class ProjectServiceTest extends TestCase
         $project = new Project;
 
         $project->id = 1;
+        $project->file_path = 'projects/files/project.zip';
 
         $repository = Mockery::mock(
             ProjectRepositoryInterface::class
@@ -512,16 +513,17 @@ class ProjectServiceTest extends TestCase
             ProjectFileServiceInterface::class
         );
 
-        $fileService
-            ->shouldReceive('delete')
-            ->once()
-            ->with($project)
-            ->ordered();
-
         $repository
             ->shouldReceive('delete')
             ->once()
             ->with($project)
+            ->ordered()
+            ->andReturn(true);
+
+        $fileService
+            ->shouldReceive('removeStoredFile')
+            ->once()
+            ->with('projects/files/project.zip')
             ->ordered()
             ->andReturn(true);
 
@@ -540,6 +542,7 @@ class ProjectServiceTest extends TestCase
         $project = new Project;
 
         $project->id = 1;
+        $project->file_path = 'projects/files/project.zip';
 
         $repository = Mockery::mock(
             ProjectRepositoryInterface::class
@@ -550,9 +553,7 @@ class ProjectServiceTest extends TestCase
         );
 
         $fileService
-            ->shouldReceive('delete')
-            ->once()
-            ->with($project);
+            ->shouldNotReceive('removeStoredFile');
 
         $repository
             ->shouldReceive('delete')

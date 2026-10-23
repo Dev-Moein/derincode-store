@@ -121,7 +121,7 @@ class ProjectFileServiceTest extends TestCase
         );
 
         $this->expectExceptionMessage(
-            'Only ZIP files are allowed.'
+            'Only valid ZIP files are allowed.'
         );
 
         $this->projectFileService->store(

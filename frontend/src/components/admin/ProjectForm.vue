@@ -41,6 +41,33 @@ const form = reactive({
 const projectFile = ref(null)
 const imageFiles = ref([])
 
+const validationLabels = {
+    title: 'عنوان پروژه',
+    slug: 'شناسه پروژه',
+    short_description: 'توضیح کوتاه',
+    description: 'توضیحات',
+    price: 'قیمت',
+    currency: 'واحد پول',
+    status: 'وضعیت',
+    file: 'فایل پروژه',
+    images: 'تصاویر',
+}
+
+const fieldError = (key) => {
+    const value = store.errors?.[key]
+    return Array.isArray(value) ? value[0] : (typeof value === 'string' ? value : '')
+}
+
+const extraErrors = () => Object.entries(store.errors || {})
+    .filter(([key]) => !(key in validationLabels))
+    .flatMap(([key, value]) => (Array.isArray(value) ? value : [value])
+        .filter(Boolean)
+        .map((message, index) => ({
+            key: `${key}-${index}`,
+            label: key.startsWith('images.') ? 'تصویر' : (validationLabels[key] || key),
+            message,
+        })))
+
 const resetForm = () => {
     form.title = ''
     form.slug = ''
@@ -288,6 +315,20 @@ const submit = async () => {
             {{ store.error }}
         </div>
 
+        <div
+            v-if="extraErrors().length"
+            class="validation-summary"
+            role="alert"
+            aria-live="assertive"
+        >
+            <strong>لطفاً خطاهای زیر را بررسی کنید:</strong>
+            <ul>
+                <li v-for="item in extraErrors()" :key="item.key">
+                    <span>{{ item.label }}:</span> {{ item.message }}
+                </li>
+            </ul>
+        </div>
+
         <!-- Basic -->
         <div class="form-grid">
             <div class="field full">
@@ -303,7 +344,7 @@ const submit = async () => {
                     autocomplete="off"
                     required
                     :aria-invalid="
-                        !!store.errors.title
+                        !!fieldError('title')
                     "
                     :aria-describedby="
                         store.errors.title
@@ -317,7 +358,7 @@ const submit = async () => {
                     id="project-title-error"
                     class="field-error"
                 >
-                    {{ store.errors.title[0] }}
+                    {{ fieldError('title') }}
                 </span>
             </div>
 
@@ -335,7 +376,7 @@ const submit = async () => {
                     placeholder="my-project"
                     dir="ltr"
                     :aria-invalid="
-                        !!store.errors.slug
+                        !!fieldError('slug')
                     "
                     :aria-describedby="
                         store.errors.slug
@@ -349,7 +390,7 @@ const submit = async () => {
                     id="project-slug-error"
                     class="field-error"
                 >
-                    {{ store.errors.slug[0] }}
+                    {{ fieldError('slug') }}
                 </span>
             </div>
 
@@ -361,6 +402,8 @@ const submit = async () => {
                 <select
                     id="project-status"
                     v-model="form.status"
+                    :aria-invalid="!!fieldError('status')"
+                    :aria-describedby="fieldError('status') ? 'project-status-error' : undefined"
                 >
                     <option value="draft">
                         پیش‌نویس
@@ -374,6 +417,9 @@ const submit = async () => {
                         آرشیو
                     </option>
                 </select>
+                <span v-if="fieldError('status')" id="project-status-error" class="field-error">
+                    {{ fieldError('status') }}
+                </span>
             </div>
 
             <div class="field full">
@@ -387,7 +433,7 @@ const submit = async () => {
                     type="text"
                     maxlength="1000"
                     :aria-invalid="
-                        !!store.errors.short_description
+                        !!fieldError('short_description')
                     "
                     :aria-describedby="
                         store.errors.short_description
@@ -419,7 +465,7 @@ const submit = async () => {
                     rows="7"
                     maxlength="50000"
                     :aria-invalid="
-                        !!store.errors.description
+                        !!fieldError('description')
                     "
                     :aria-describedby="
                         store.errors.description
@@ -433,7 +479,7 @@ const submit = async () => {
                     id="project-description-error"
                     class="field-error"
                 >
-                    {{ store.errors.description[0] }}
+                    {{ fieldError('description') }}
                 </span>
             </div>
         </div>
@@ -458,7 +504,7 @@ const submit = async () => {
                     inputmode="decimal"
                     dir="ltr"
                     :aria-invalid="
-                        !!store.errors.price
+                        !!fieldError('price')
                     "
                     :aria-describedby="
                         store.errors.price
@@ -472,7 +518,7 @@ const submit = async () => {
                     id="project-price-error"
                     class="field-error"
                 >
-                    {{ store.errors.price[0] }}
+                    {{ fieldError('price') }}
                 </span>
             </div>
 
@@ -484,6 +530,8 @@ const submit = async () => {
                 <select
                     id="project-currency"
                     v-model="form.currency"
+                    :aria-invalid="!!fieldError('currency')"
+                    :aria-describedby="fieldError('currency') ? 'project-currency-error' : undefined"
                 >
                     <option value="IRR">
                         IRR
@@ -497,6 +545,9 @@ const submit = async () => {
                         EUR
                     </option>
                 </select>
+                <span v-if="fieldError('currency')" id="project-currency-error" class="field-error">
+                    {{ fieldError('currency') }}
+                </span>
             </div>
         </div>
 
@@ -565,7 +616,7 @@ const submit = async () => {
             v-if="store.errors.file"
             class="field-error"
         >
-            {{ store.errors.file[0] }}
+            {{ fieldError('file') }}
         </span>
 
         <!-- Images -->
@@ -606,7 +657,7 @@ const submit = async () => {
             v-if="store.errors.images"
             class="field-error"
         >
-            {{ store.errors.images[0] }}
+            {{ fieldError('images') }}
         </span>
 
         <!-- Actions -->
@@ -732,6 +783,26 @@ const submit = async () => {
     outline: 2px solid var(--orange);
 
     outline-offset: 3px;
+}
+
+.validation-summary {
+    margin-bottom: 14px;
+    padding: 11px 13px;
+    color: var(--danger);
+    border: 1px solid rgba(255, 92, 92, 0.2);
+    border-radius: 8px;
+    background: rgba(255, 92, 92, 0.035);
+    font-size: 11px;
+    line-height: 1.8;
+}
+
+.validation-summary ul {
+    margin: 6px 0 0;
+    padding-inline-start: 20px;
+}
+
+.validation-summary span {
+    font-weight: 800;
 }
 
 .error-box {

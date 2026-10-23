@@ -1,7 +1,7 @@
 <script setup>
 import { ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { ArrowLeft, LogOut, Menu, UserRound, X } from "lucide-vue-next";
+import { ArrowLeft, LogIn, LogOut, Menu, UserRound, X } from "lucide-vue-next";
 
 import { useAuthStore } from "../../stores/auth";
 
@@ -66,6 +66,18 @@ const goToHomeSection = async (hash) => {
   await router.push({
     name: "home",
     hash,
+  });
+};
+
+const goToLogin = () => {
+  closeUserMenu();
+  closeMobile();
+
+  router.push({
+    name: "login",
+    query: {
+      redirect: route.fullPath,
+    },
   });
 };
 
@@ -166,12 +178,12 @@ const logout = async () => {
       <button
         v-if="!authStore.isAuthenticated"
         type="button"
-        class="start-button"
-        @click="goToHomeSection('#contact')"
+        class="login-icon-button"
+        aria-label="ورود به حساب کاربری"
+        title="ورود به حساب کاربری"
+        @click="goToLogin"
       >
-        شروع یک پروژه
-
-        <ArrowLeft :size="15" class="button-arrow" />
+        <LogIn :size="19" aria-hidden="true" />
       </button>
 
       <!-- ========================================================= -->
@@ -310,12 +322,11 @@ const logout = async () => {
           <button
             v-else
             type="button"
-            class="mobile-start"
-            @click="goToHomeSection('#contact')"
+            class="mobile-start mobile-login"
+            @click="goToLogin"
           >
-            شروع یک پروژه
-
-            <ArrowLeft :size="15" />
+            <span>ورود به حساب کاربری</span>
+            <LogIn :size="17" aria-hidden="true" />
           </button>
         </div>
       </Transition>
@@ -460,6 +471,43 @@ button.nav-link {
 
 .request-link:hover {
   color: var(--orange-light);
+}
+
+/* ========================================================= */
+/* Guest Login */
+/* ========================================================= */
+
+.login-icon-button {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--orange);
+  border: 1px solid var(--border-orange);
+  border-radius: 10px;
+  background: rgba(255, 107, 0, 0.055);
+  cursor: pointer;
+  transition:
+    color var(--transition),
+    background var(--transition),
+    border-color var(--transition),
+    transform var(--transition),
+    box-shadow var(--transition);
+}
+
+.login-icon-button:hover {
+  color: #090909;
+  border-color: var(--orange);
+  background: var(--orange);
+  box-shadow: 0 0 22px rgba(255, 107, 0, 0.15);
+  transform: translateY(-1px);
+}
+
+.login-icon-button:focus-visible {
+  outline: 2px solid var(--orange);
+  outline-offset: 3px;
 }
 
 /* ========================================================= */
@@ -836,6 +884,17 @@ button.nav-link {
   cursor: pointer;
 }
 
+.mobile-start.mobile-login {
+  color: var(--text-primary);
+  border: 1px solid var(--border-orange);
+  background: rgba(255, 107, 0, 0.08);
+}
+
+.mobile-start.mobile-login:hover {
+  color: #090909;
+  background: var(--orange);
+}
+
 .mobile-menu-enter-active,
 .mobile-menu-leave-active {
   transition:
@@ -863,6 +922,7 @@ button.nav-link {
 @media (max-width: 900px) {
   .desktop-nav,
   .start-button,
+  .login-icon-button,
   .user-area {
     display: none;
   }

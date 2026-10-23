@@ -96,12 +96,15 @@ export const useAdminProjectsStore = defineStore(
                     error?.response?.data?.errors ||
                     {}
 
-
                 this.error =
                     error?.apiMessage ||
                     error?.response?.data?.message ||
                     error?.message ||
                     'عملیات انجام نشد.'
+
+                if (error?.response?.status === 422 && !Object.keys(this.errors).length) {
+                    this.error = this.error || 'اطلاعات واردشده معتبر نیست.'
+                }
 
             },
 

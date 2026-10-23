@@ -108,6 +108,19 @@ class PaymentService implements PaymentServiceInterface
             ]);
         }
 
+        if ($payment->authority) {
+            $paymentUrl = $this->paymentGateway->paymentUrl($payment);
+
+            if ($paymentUrl) {
+                return [
+                    'success' => true,
+                    'payment' => $payment,
+                    'authority' => $payment->authority,
+                    'payment_url' => $paymentUrl,
+                ];
+            }
+        }
+
         $result = $this->paymentGateway->request(
             $payment,
             $callbackUrl

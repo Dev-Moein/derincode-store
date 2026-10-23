@@ -21,6 +21,8 @@ interface ProjectFileServiceInterface
         Project $project
     ): bool;
 
+    public function removeStoredFile(?string $path): bool;
+
     public function exists(
         Project $project
     ): bool;
