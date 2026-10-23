@@ -259,7 +259,7 @@ const goToSection = async (hash) => {
         <div class="benefit">
 
             <div class="benefit-icon">
-                <Gauge :size="25" />
+                <Gauge :size="30" />
             </div>
 
 
@@ -284,7 +284,7 @@ const goToSection = async (hash) => {
             <div class="benefit-icon">
 
                 <ShieldCheck
-                    :size="25"
+                    :size="30"
                 />
 
             </div>
@@ -310,7 +310,7 @@ const goToSection = async (hash) => {
 
             <div class="benefit-icon">
 
-                <Code2 :size="25" />
+                <Code2 :size="30" />
 
             </div>
 
@@ -336,7 +336,7 @@ const goToSection = async (hash) => {
             <div class="benefit-icon">
 
                 <Headphones
-                    :size="25"
+                    :size="30"
                 />
 
             </div>
@@ -917,7 +917,7 @@ const goToSection = async (hash) => {
 .benefit-content h3 {
     color: #f0f0f0;
 
-    font-size: 12px;
+    font-size: 16px;
 
     font-weight: 800;
 }
@@ -929,7 +929,7 @@ const goToSection = async (hash) => {
 
     color: #777d82;
 
-    font-size: 8px;
+    font-size: 12px;
 
     line-height: 1.8;
 }
