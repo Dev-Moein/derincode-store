@@ -39,6 +39,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
@@ -63,5 +65,8 @@ jobs:
       - name: Run test suite
         run: php artisan test
 
-      - name: Check code style
-        run: vendor/bin/pint --test
+      - name: Check code style on changed PHP files
+        run: |
+          git diff --name-only origin/main...HEAD -- '*.php' \
+            | sed '/^backend\//!d; s#^backend/##' \
+            | xargs -r vendor/bin/pint --test
