@@ -10,11 +10,8 @@ use Illuminate\Support\Facades\Http;
 class ZarinpalService implements PaymentGatewayInterface
 {
     private string $merchantId;
-
     private string $requestUrl;
-
     private string $verifyUrl;
-
     private string $paymentUrl;
 
     public function __construct()
@@ -28,10 +25,7 @@ class ZarinpalService implements PaymentGatewayInterface
     public function request(Payment $payment, string $callbackUrl): array
     {
         if (! $this->isConfigured() || ! $this->hasSupportedAmount($payment)) {
-            return [
-                'success' => false,
-                'reason' => 'invalid_gateway_configuration_or_amount',
-            ];
+            return ['success' => false, 'reason' => 'invalid_gateway_configuration_or_amount'];
         }
 
         try {
@@ -46,10 +40,7 @@ class ZarinpalService implements PaymentGatewayInterface
                     'description' => sprintf('Purchase project #%d', $payment->project_id),
                 ]);
         } catch (ConnectionException) {
-            return [
-                'success' => false,
-                'reason' => 'gateway_unavailable',
-            ];
+            return ['success' => false, 'reason' => 'gateway_unavailable'];
         }
 
         $data = $response->json();
@@ -61,10 +52,7 @@ class ZarinpalService implements PaymentGatewayInterface
             || ! is_string($authority)
             || $authority === ''
         ) {
-            return [
-                'success' => false,
-                'reason' => 'gateway_request_rejected',
-            ];
+            return ['success' => false, 'reason' => 'gateway_request_rejected'];
         }
 
         return [
@@ -91,10 +79,7 @@ class ZarinpalService implements PaymentGatewayInterface
             || ! $payment->authority
             || ! hash_equals((string) $payment->authority, $authority)
         ) {
-            return [
-                'success' => false,
-                'reason' => 'invalid_gateway_configuration_or_payment',
-            ];
+            return ['success' => false, 'reason' => 'invalid_gateway_configuration_or_payment'];
         }
 
         try {
@@ -108,38 +93,23 @@ class ZarinpalService implements PaymentGatewayInterface
                     'authority' => $authority,
                 ]);
         } catch (ConnectionException) {
-            return [
-                'success' => false,
-                'reason' => 'gateway_unavailable',
-            ];
+            return ['success' => false, 'reason' => 'gateway_unavailable'];
         }
 
         $data = $response->json();
         $code = (int) data_get($data, 'data.code', 0);
 
         if (! $response->successful() || ! in_array($code, [100, 101], true)) {
-            return [
-                'success' => false,
-                'code' => $code,
-                'reason' => 'verification_rejected',
-            ];
+            return ['success' => false, 'code' => $code, 'reason' => 'verification_rejected'];
         }
 
         $refId = data_get($data, 'data.ref_id');
 
         if ($refId === null || (string) $refId === '') {
-            return [
-                'success' => false,
-                'code' => $code,
-                'reason' => 'missing_transaction_reference',
-            ];
+            return ['success' => false, 'code' => $code, 'reason' => 'missing_transaction_reference'];
         }
 
-        return [
-            'success' => true,
-            'code' => $code,
-            'ref_id' => (string) $refId,
-        ];
+        return ['success' => true, 'code' => $code, 'ref_id' => (string) $refId];
     }
 
     private function isConfigured(): bool
@@ -155,12 +125,17 @@ class ZarinpalService implements PaymentGatewayInterface
 
     private function hasSupportedAmount(Payment $payment): bool
     {
-        // Zarinpal v4 expects an integer amount in Rial. Do not silently
-        // convert USD/Toman or truncate fractional amounts.
+        // Zarinpal v4 expects integer Rial amounts; do not convert USD/Toman silently.
+        if (strtoupper((string) $payment->currency) !== 'IRR') {
+            return false;
+        }
+
         $amount = (string) $payment->amount;
 
-        return strtoupper((string) $payment->currency) === 'IRR'
-            && ctype_digit($amount)
-            && (int) $amount > 0;
+        if (preg_match('/^([0-9]+)(?:\\.0+)?$/', $amount, $matches) !== 1) {
+            return false;
+        }
+
+        return (int) $matches[1] > 0;
     }
 }
