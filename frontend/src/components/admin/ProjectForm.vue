@@ -537,13 +537,7 @@ const submit = async () => {
                         تومان (IRT)
                     </option>
 
-                    <option value="USD">
-                        USD
-                    </option>
 
-                    <option value="EUR">
-                        EUR
-                    </option>
                 </select>
                 <span v-if="fieldError('currency')" id="project-currency-error" class="field-error">
                     {{ fieldError('currency') }}
