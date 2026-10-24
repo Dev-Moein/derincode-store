@@ -37,6 +37,7 @@ const activeImage = ref(0)
 
 const requestModalOpen = ref(false)
 const paymentLoading = ref(false)
+const paymentError = ref('')
 const downloadLoading = ref(false)
 
 /*
@@ -240,9 +241,11 @@ const handleRequestSuccess = () => {
 */
 
 const buyProject = async () => {
-    if (!project.value) {
+    if (!project.value || paymentLoading.value) {
         return
     }
+
+    paymentError.value = ''
 
     if (!authStore.isAuthenticated) {
         router.push({
@@ -257,34 +260,42 @@ const buyProject = async () => {
 
     if (!project.value.is_for_sale) {
         openRequest()
-
         return
     }
 
     paymentLoading.value = true
 
-    const result =
-        await paymentsStore.createPayment({
+    try {
+        const result = await paymentsStore.createPayment({
             projectId: project.value.id,
             gateway: 'zarinpal',
         })
 
-    paymentLoading.value = false
+        if (!result?.success) {
+            paymentError.value =
+                paymentsStore.error ||
+                result?.error?.apiMessage ||
+                result?.error?.response?.data?.message ||
+                'شروع پرداخت انجام نشد. لطفاً دوباره تلاش کنید.'
+            return
+        }
 
-    if (!result.success) {
-        return
+        if (!result.paymentUrl) {
+            paymentError.value =
+                'درگاه پرداخت آدرس معتبری برنگرداند. لطفاً دوباره تلاش کنید.'
+            return
+        }
+
+        window.location.assign(result.paymentUrl)
+    } catch (error) {
+        console.error('Failed to start project payment:', error)
+        paymentError.value =
+            error?.apiMessage ||
+            error?.response?.data?.message ||
+            'ارتباط با درگاه پرداخت برقرار نشد. لطفاً دوباره تلاش کنید.'
+    } finally {
+        paymentLoading.value = false
     }
-
-    if (!result.paymentUrl) {
-        console.error(
-            'Payment URL is missing.'
-        )
-
-        return
-    }
-
-    window.location.href =
-        result.paymentUrl
 }
 
 /*
@@ -700,6 +711,15 @@ onMounted(fetchProject)
                         <!-- Actions -->
                         <!-- ================================================= -->
 
+                        <div
+                            v-if="paymentError"
+                            class="payment-error"
+                            role="alert"
+                            aria-live="assertive"
+                        >
+                            {{ paymentError }}
+                        </div>
+
                         <div class="project-actions">
 
                             <!-- Download -->
@@ -750,7 +770,7 @@ onMounted(fetchProject)
                                 type="button"
                                 class="primary-action"
                                 :disabled="
-                                    paymentLoading
+                                    paymentLoading || !project
                                 "
                                 @click="buyProject"
                             >
@@ -1455,6 +1475,21 @@ onMounted(fetchProject)
 /* ================================================================ */
 /* Actions */
 /* ================================================================ */
+
+.payment-error {
+    margin-bottom: 12px;
+    padding: 12px 14px;
+    color: var(--danger, #ff5c5c);
+    border: 1px solid rgba(255, 92, 92, 0.28);
+    border-radius: 8px;
+    background: rgba(255, 92, 92, 0.07);
+    font-size: 12px;
+    line-height: 1.9;
+}
+
+.payment-error:empty {
+    display: none;
+}
 
 .project-actions {
     display: flex;
