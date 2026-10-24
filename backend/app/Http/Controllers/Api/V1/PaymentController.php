@@ -222,6 +222,16 @@ class PaymentController extends Controller
         */
 
         if (! $result['success']) {
+            // A transient gateway/network failure is not proof that payment failed.
+            // Keep the payment pending so a later callback can safely verify it.
+            if (($result['reason'] ?? null) === 'gateway_unavailable') {
+                return redirect(
+                    config('app.frontend_url')
+                    . '/payment/result?status=pending'
+                    . '&payment=' . $paymentModel->id
+                );
+            }
+
             $paymentModel = $this->paymentService->markAsFailed(
                 $paymentModel
             );
