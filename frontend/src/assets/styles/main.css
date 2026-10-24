@@ -52,17 +52,9 @@ body {
         var(--bg-primary);
 
     color: var(--text-primary);
-<<<<<<< HEAD
-    font-family: var(--font-sans);
+    font-family: var(--ff-primary);
     font-size: 17px;
     line-height: 1.85;
-=======
-
-    font-family: var(--ff-primary);
-    font-size: 16px;
-    line-height: 1.8;
-
->>>>>>> e454c9dbf8fd71620fa57c788aab53ddf53b3064
     direction: rtl;
 
     text-rendering: optimizeLegibility;
