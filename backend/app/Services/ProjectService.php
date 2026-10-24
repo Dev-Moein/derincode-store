@@ -9,6 +9,7 @@ use App\Models\Project;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class ProjectService implements ProjectServiceInterface
 {
@@ -43,6 +44,30 @@ class ProjectService implements ProjectServiceInterface
         ) {
             unset($data['file']);
 
+            if (blank($data['slug'] ?? null)) {
+                $baseSlug = Str::slug($data['title']);
+
+                if ($baseSlug === '') {
+                    $baseSlug = 'project';
+                }
+
+                $slug = $baseSlug;
+                $suffix = 2;
+
+                while (Project::query()->where('slug', $slug)->exists()) {
+                    $suffixText = '-'.$suffix;
+
+                    $slug = substr(
+                        $baseSlug,
+                        0,
+                        255 - strlen($suffixText)
+                    ).$suffixText;
+
+                    $suffix++;
+                }
+
+                $data['slug'] = $slug;
+            }
             $project = $this->projectRepository->create(
                 $data
             );
@@ -86,9 +111,18 @@ class ProjectService implements ProjectServiceInterface
         });
     }
 
-    public function delete(
-        Project $project
-    ): bool {
+    public function delete(Project $project): bool
+    {
+        $hasPayments = DB::table('payments')
+            ->where('project_id', $project->id)
+            ->exists();
+
+        if ($hasPayments) {
+            throw new \RuntimeException(
+                'این پروژه دارای سوابق پرداخت است و امکان حذف فیزیکی آن وجود ندارد.'
+            );
+        }
+
         $filePath = $project->file_path;
 
         $deleted = DB::transaction(function () use ($project) {

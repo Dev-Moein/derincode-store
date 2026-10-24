@@ -205,12 +205,12 @@ export const useAdminProjectsStore = defineStore(
 
 
                     const response =
-                        await api.get(
-                            '/projects',
-                            {
-                                params,
-                            }
-                        )
+    await api.get(
+        '/projects/admin',
+        {
+            params,
+        }
+    )
 
 
                     const data =

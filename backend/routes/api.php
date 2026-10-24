@@ -29,21 +29,19 @@ Route::prefix('v1')->group(function () {
             ],
         ]);
     });
-/*
-|--------------------------------------------------------------------------
-| Contact
-|--------------------------------------------------------------------------
-|
-| Public endpoint for visitors to send a contact message.
-|
-*/
+    /*
+    |--------------------------------------------------------------------------
+    | Contact
+    |--------------------------------------------------------------------------
+    |
+    | Public endpoint for visitors to send a contact message.
+    |
+    */
 
-Route::post('/contact', [
-    ContactController::class,
-    'store',
-]);
-
-
+    Route::post('/contact', [
+        ContactController::class,
+        'store',
+    ]);
 
     /*
     |--------------------------------------------------------------------------
@@ -122,7 +120,13 @@ Route::post('/contact', [
             ProjectController::class,
             'index',
         ]);
-
+        Route::get('/admin', [
+            ProjectController::class,
+            'adminIndex',
+        ])->middleware([
+            'auth:sanctum',
+            'permission:projects.view',
+        ]);
         Route::get('/{slug}', [
             ProjectController::class,
             'show',
@@ -194,16 +198,15 @@ Route::post('/contact', [
             | User's own project requests.
             */
 
-           Route::get('/', [
-    ProjectRequestController::class,
-    'index',
-]);
+            Route::get('/', [
+                ProjectRequestController::class,
+                'index',
+            ]);
 
-
-Route::post('/', [
-    ProjectRequestController::class,
-    'store',
-]);
+            Route::post('/', [
+                ProjectRequestController::class,
+                'store',
+            ]);
 
             /*
             |------------------------------------------------------------------
@@ -243,18 +246,17 @@ Route::post('/', [
                     ]);
                 });
         });
-        Route::prefix('admin')
-    ->middleware([
-        'auth:sanctum',
-        'permission:dashboard.view',
-    ])
-    ->group(function () {
-        Route::get(
-            '/dashboard',
-            [AdminDashboardController::class, 'index']
-        );
-    });
-
+    Route::prefix('admin')
+        ->middleware([
+            'auth:sanctum',
+            'permission:dashboard.view',
+        ])
+        ->group(function () {
+            Route::get(
+                '/dashboard',
+                [AdminDashboardController::class, 'index']
+            );
+        });
 
     /*
 |--------------------------------------------------------------------------
@@ -262,39 +264,36 @@ Route::post('/', [
 |--------------------------------------------------------------------------
 */
 
-Route::prefix('admin/users')
-    ->middleware([
-        'auth:sanctum',
-        'permission:users.view',
-    ])
-    ->group(function () {
-
-        Route::get('/', [
-            AdminUserController::class,
-            'index',
-        ]);
-
-
-        Route::get('/{id}', [
-            AdminUserController::class,
-            'show',
-        ]);
-
-
-        Route::put('/{id}/role', [
-            AdminUserController::class,
-            'updateRole',
+    Route::prefix('admin/users')
+        ->middleware([
+            'auth:sanctum',
+            'permission:users.view',
         ])
-        ->middleware('permission:users.update');
+        ->group(function () {
 
+            Route::get('/', [
+                AdminUserController::class,
+                'index',
+            ]);
 
-        Route::delete('/{id}', [
-            AdminUserController::class,
-            'destroy',
-        ])
-        ->middleware('permission:users.delete');
+            Route::get('/{id}', [
+                AdminUserController::class,
+                'show',
+            ]);
 
-    });
+            Route::put('/{id}/role', [
+                AdminUserController::class,
+                'updateRole',
+            ])
+                ->middleware('permission:users.update');
+
+            Route::delete('/{id}', [
+                AdminUserController::class,
+                'destroy',
+            ])
+                ->middleware('permission:users.delete');
+
+        });
     /*
     |--------------------------------------------------------------------------
     | Payments

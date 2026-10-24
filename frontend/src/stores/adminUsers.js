@@ -70,8 +70,9 @@ export const useAdminUsersStore = defineStore(
                     error?.response?.data?.errors || {}
 
                 this.error =
+                    error?.apiMessage ||
                     error?.response?.data?.message ||
-                    'خطایی رخ داد.'
+                    'عملیات انجام نشد. لطفاً دوباره تلاش کنید.'
 
             },
 

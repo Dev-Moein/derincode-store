@@ -7,7 +7,9 @@ use App\Contracts\Services\ProjectFileServiceInterface;
 use App\Models\Project;
 use App\Services\ProjectService;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Schema;
 use Mockery;
 use Tests\TestCase;
 
@@ -532,6 +534,12 @@ class ProjectServiceTest extends TestCase
             $fileService
         );
 
+        if (! Schema::hasTable('payments')) {
+            Schema::create('payments', function (Blueprint $table) {
+                $table->id();
+                $table->unsignedBigInteger('project_id');
+            });
+        }
         $result = $service->delete($project);
 
         $this->assertTrue($result);
@@ -566,6 +574,12 @@ class ProjectServiceTest extends TestCase
             $fileService
         );
 
+        if (! Schema::hasTable('payments')) {
+            Schema::create('payments', function (Blueprint $table) {
+                $table->id();
+                $table->unsignedBigInteger('project_id');
+            });
+        }
         $result = $service->delete($project);
 
         $this->assertFalse($result);

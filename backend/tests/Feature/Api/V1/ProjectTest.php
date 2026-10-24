@@ -2,29 +2,30 @@
 
 namespace Tests\Feature\Api\V1;
 
+use App\Contracts\Services\PaymentGatewayInterface;
 use App\Enums\ProjectStatus;
 use App\Models\Permission;
 use App\Models\Project;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
-use App\Contracts\Services\PaymentGatewayInterface;
 use Mockery;
+use Tests\TestCase;
 
 class ProjectTest extends TestCase
 {
     use RefreshDatabase;
 
     protected function setUp(): void
-{
-    parent::setUp();
+    {
+        parent::setUp();
 
-    $this->app->instance(
-        PaymentGatewayInterface::class,
-        Mockery::mock(PaymentGatewayInterface::class)
-    );
-}
+        $this->app->instance(
+            PaymentGatewayInterface::class,
+            Mockery::mock(PaymentGatewayInterface::class)
+        );
+    }
+
     private function admin(): User
     {
         /** @var User $user */
@@ -39,6 +40,7 @@ class ProjectTest extends TestCase
         );
 
         $permissions = [
+            'projects.view',
             'projects.create',
             'projects.update',
             'projects.delete',
@@ -76,9 +78,75 @@ class ProjectTest extends TestCase
             ]);
     }
 
+    public function test_public_api_only_returns_published_projects(): void
+    {
+        Project::factory()->create([
+            'title' => 'Draft Project',
+            'status' => ProjectStatus::DRAFT,
+        ]);
+
+        Project::factory()->create([
+            'title' => 'Archived Project',
+            'status' => ProjectStatus::ARCHIVED,
+        ]);
+
+        Project::factory()->published()->create([
+            'title' => 'Published Project',
+        ]);
+
+        $response = $this->getJson('/api/v1/projects');
+
+        $response
+            ->assertOk()
+            ->assertJsonFragment([
+                'title' => 'Published Project',
+            ])
+            ->assertJsonMissing([
+                'title' => 'Draft Project',
+            ])
+            ->assertJsonMissing([
+                'title' => 'Archived Project',
+            ]);
+    }
+
+    public function test_admin_can_list_projects_with_all_statuses(): void
+    {
+        $user = $this->admin();
+
+        Project::factory()->create([
+            'title' => 'Draft Project',
+            'status' => ProjectStatus::DRAFT,
+        ]);
+
+        Project::factory()->published()->create([
+            'title' => 'Published Project',
+        ]);
+
+        Project::factory()->create([
+            'title' => 'Archived Project',
+            'status' => ProjectStatus::ARCHIVED,
+        ]);
+
+        $response = $this->actingAs($user, 'sanctum')
+            ->getJson('/api/v1/projects/admin');
+
+        $response
+            ->assertOk()
+            ->assertJsonFragment(['title' => 'Draft Project'])
+            ->assertJsonFragment(['title' => 'Published Project'])
+            ->assertJsonFragment(['title' => 'Archived Project']);
+    }
+
+    public function test_unauthenticated_user_cannot_list_admin_projects(): void
+    {
+        $response = $this->getJson('/api/v1/projects/admin');
+
+        $response->assertUnauthorized();
+    }
+
     public function test_public_user_can_view_project(): void
     {
-        $project = Project::factory()->create();
+        $project = Project::factory()->published()->create();
 
         $response = $this->getJson(
             "/api/v1/projects/{$project->slug}"

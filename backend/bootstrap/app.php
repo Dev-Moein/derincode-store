@@ -11,7 +11,6 @@ use Illuminate\Http\Exceptions\ThrottleRequestsException;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
-
 return Application::configure(
     basePath: dirname(__DIR__)
 )
@@ -53,7 +52,7 @@ return Application::configure(
             }
 
             return ApiResponse::error(
-                message: 'Validation failed.',
+                message: 'اطلاعات واردشده معتبر نیست. لطفاً موارد مشخص‌شده را بررسی کنید.',
                 status: 422,
                 errors: $e->errors(),
             );
@@ -74,29 +73,29 @@ return Application::configure(
             }
 
             return ApiResponse::error(
-                message: 'Unauthenticated.',
+                message: 'برای انجام این عملیات باید وارد حساب کاربری شوید.',
                 status: 401,
             );
         });
-            /*
+        /*
 |--------------------------------------------------------------------------
 | 403 - Forbidden
 |--------------------------------------------------------------------------
 */
 
-$exceptions->render(function (
-    AuthorizationException $e,
-    $request
-) {
-    if (! $request->is('api/*')) {
-        return null;
-    }
+        $exceptions->render(function (
+            AuthorizationException $e,
+            $request
+        ) {
+            if (! $request->is('api/*')) {
+                return null;
+            }
 
-    return ApiResponse::error(
-        message: 'You do not have permission to perform this action.',
-        status: 403,
-    );
-});
+            return ApiResponse::error(
+                message: 'شما اجازه انجام این عملیات را ندارید.',
+                status: 403,
+            );
+        });
         /*
         |--------------------------------------------------------------------------
         | 404 - Resource Not Found
@@ -112,7 +111,7 @@ $exceptions->render(function (
             }
 
             return ApiResponse::error(
-                message: 'Resource not found.',
+                message: 'مورد درخواستی پیدا نشد.',
                 status: 404,
             );
         });
@@ -132,8 +131,34 @@ $exceptions->render(function (
             }
 
             return ApiResponse::error(
-                message: 'Too many requests. Please try again later.',
+                message: 'تعداد درخواست‌ها بیش از حد مجاز است. لطفاً کمی بعد دوباره تلاش کنید.',
                 status: 429,
+            );
+        });
+        /*
+|--------------------------------------------------------------------------
+| 409 - Project Cannot Be Deleted
+|--------------------------------------------------------------------------
+*/
+
+        $exceptions->render(function (
+            RuntimeException $e,
+            $request
+        ) {
+            if (! $request->is('api/*')) {
+                return null;
+            }
+
+            if (
+                $e->getMessage() !==
+                'این پروژه دارای سوابق پرداخت است و امکان حذف فیزیکی آن وجود ندارد.'
+            ) {
+                return null;
+            }
+
+            return ApiResponse::error(
+                message: $e->getMessage(),
+                status: 409,
             );
         });
         /*
@@ -142,25 +167,24 @@ $exceptions->render(function (
 |--------------------------------------------------------------------------
 */
 
-$exceptions->render(function (
-    Throwable $e,
-    $request
-) {
+        $exceptions->render(function (
+            Throwable $e,
+            $request
+        ) {
 
-    if (! $request->is('api/*')) {
-        return null;
-    }
+            if (! $request->is('api/*')) {
+                return null;
+            }
 
+            return ApiResponse::error(
+                message: app()->environment('production')
+                    ? 'خطایی در سرور رخ داده است. لطفاً کمی بعد دوباره تلاش کنید.'
+                    : $e->getMessage(),
 
-    return ApiResponse::error(
-        message: app()->environment('production')
-            ? 'Something went wrong.'
-            : $e->getMessage(),
+                status: 500,
+            );
 
-        status: 500,
-    );
-
-});
+        });
     })
 
     ->create();

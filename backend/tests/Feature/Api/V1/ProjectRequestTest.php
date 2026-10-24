@@ -224,7 +224,7 @@ class ProjectRequestTest extends TestCase
             ->assertStatus(422)
             ->assertJson([
                 'success' => false,
-                'message' => 'Validation failed.',
+                'message' => 'اطلاعات واردشده معتبر نیست. لطفاً موارد مشخص‌شده را بررسی کنید.',
             ])
             ->assertJsonStructure([
                 'errors' => [
@@ -496,7 +496,7 @@ class ProjectRequestTest extends TestCase
             ->assertStatus(422)
             ->assertJson([
                 'success' => false,
-                'message' => 'Validation failed.',
+                'message' => 'اطلاعات واردشده معتبر نیست. لطفاً موارد مشخص‌شده را بررسی کنید.',
             ])
             ->assertJsonStructure([
                 'errors' => [
