@@ -49,6 +49,10 @@ const translateValidationMessage = (message, key) => {
         return message
     }
 
+    if (message === 'This project is not available for purchase.') {
+        return 'این پروژه در حال حاضر برای خرید در دسترس نیست.'
+    }
+
     const field = fieldLabels[key?.split('.')[0]] || 'این فیلد'
     const rules = [
         [/^The (.+) field is required\.?$/i, `وارد کردن ${field} الزامی است.`],
