@@ -5,7 +5,7 @@ import HeroSection from '../components/home/HeroSection.vue'
 import ServicesSection from '../components/home/ServicesSection.vue'
 import ProjectsSection from '../components/home/ProjectsSection.vue'
 import ProcessSection from '../components/home/ProcessSection.vue'
-import CtaSection from '../components/home/CtaSection.vue'
+import CTASection from '../components/home/CTASection.vue'
 import ContactSection from '../components/home/ContactSection.vue'
 </script>
 
@@ -19,7 +19,7 @@ import ContactSection from '../components/home/ContactSection.vue'
 
         <ProcessSection />
 
-        <CtaSection />
+        <CTASection />
 
         <ContactSection />
     </PublicLayout>
