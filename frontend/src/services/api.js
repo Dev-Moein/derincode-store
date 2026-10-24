@@ -115,6 +115,11 @@ api.interceptors.response.use(
 
         error.apiMessage = translateApiMessage(responseMessage, status)
 
+        // Keep legacy components that read response.data.message in Persian too.
+        if (error.response.data && typeof error.response.data === 'object') {
+            error.response.data.message = error.apiMessage
+        }
+
         if (status === 401) {
             localStorage.removeItem('derincode_token')
         }
