@@ -89,7 +89,7 @@ class ZarinpalServiceTest extends TestCase
         $payment = new Payment([
             'project_id' => 12,
             'amount' => 150000,
-            'currency' => 'IRR',
+            'currency' => 'IRT',
             'authority' => 'AUTH-123',
         ]);
 
