@@ -20,43 +20,80 @@ const api = axios.create({
 })
 
 
+const translateApiMessage = (message, status) => {
+    const knownMessages = {
+        'Validation failed.': 'اطلاعات واردشده معتبر نیست. لطفاً موارد مشخص‌شده را بررسی کنید.',
+        'Unauthenticated.': 'برای انجام این عملیات باید وارد حساب کاربری شوید.',
+        'This project is not available for purchase.': 'این پروژه در حال حاضر برای خرید در دسترس نیست.',
+        'You do not have permission to perform this action.': 'شما اجازه انجام این عملیات را ندارید.',
+        'Resource not found.': 'مورد درخواستی پیدا نشد.',
+        'Too many requests. Please try again later.': 'تعداد درخواست‌ها بیش از حد مجاز است. لطفاً کمی بعد دوباره تلاش کنید.',
+        'Something went wrong.': 'خطایی در سرور رخ داده است. لطفاً کمی بعد دوباره تلاش کنید.',
+        'The given data was invalid.': 'اطلاعات واردشده معتبر نیست. لطفاً موارد مشخص‌شده را بررسی کنید.',
+        'The project is not available for purchase.': 'این پروژه در حال حاضر برای خرید در دسترس نیست.',
+        'Invalid authentication response.': 'پاسخ ورود از سرور معتبر نیست. لطفاً دوباره تلاش کنید.',
+        'Invalid registration response.': 'پاسخ ثبت‌نام از سرور معتبر نیست. لطفاً دوباره تلاش کنید.',
+        'Invalid profile response.': 'دریافت اطلاعات حساب با مشکل مواجه شد.',
+        'User is not authenticated.': 'برای انجام این عملیات ابتدا وارد حساب کاربری شوید.',
+        'Request failed with status code 401': 'نشست شما منقضی شده است؛ دوباره وارد حساب شوید.',
+        'Network Error': 'ارتباط با سرور برقرار نشد. اتصال اینترنت و وضعیت سرور را بررسی کنید.',
+    }
+
+    if (typeof message === 'string' && knownMessages[message]) {
+        return knownMessages[message]
+    }
+
+    if (status === 401) {
+        return 'نشست شما معتبر نیست یا منقضی شده است. لطفاً دوباره وارد حساب شوید.'
+    }
+
+    if (status === 403) {
+        return 'شما اجازه انجام این عملیات را ندارید.'
+    }
+
+    if (status === 404) {
+        return 'مورد درخواستی پیدا نشد یا دیگر در دسترس نیست.'
+    }
+
+    if (status === 409) {
+        return 'این درخواست با وضعیت فعلی اطلاعات سازگار نیست. صفحه را تازه‌سازی و دوباره تلاش کنید.'
+    }
+
+    if (status === 422) {
+        return 'اطلاعات واردشده معتبر نیست. لطفاً موارد مشخص‌شده را بررسی کنید.'
+    }
+
+    if (status === 429) {
+        return 'تعداد درخواست‌ها بیش از حد مجاز است. لطفاً کمی بعد دوباره تلاش کنید.'
+    }
+
+    if (status >= 500) {
+        return 'خطایی در سرور رخ داده است. لطفاً کمی بعد دوباره تلاش کنید.'
+    }
+
+    return typeof message === 'string' && /[\u0600-\u06FF]/.test(message)
+        ? message
+        : 'انجام عملیات با مشکل مواجه شد. لطفاً دوباره تلاش کنید.'
+}
+
 
 /*
 |--------------------------------------------------------------------------
 | Request Interceptor
 |--------------------------------------------------------------------------
 */
-
 api.interceptors.request.use(
-
     (config) => {
-
-        const token =
-            localStorage.getItem(
-                'derincode_token'
-            )
-
+        const token = localStorage.getItem('derincode_token')
 
         if (token) {
-
-            config.headers.Authorization =
-                `Bearer ${token}`
-
+            config.headers.Authorization = `Bearer ${token}`
         }
 
-
         return config
-
     },
-
-    (error) => {
-
-        return Promise.reject(error)
-
-    }
-
+    (error) => Promise.reject(error)
 )
-
 
 
 /*
@@ -64,129 +101,30 @@ api.interceptors.request.use(
 | Response Interceptor
 |--------------------------------------------------------------------------
 */
-
 api.interceptors.response.use(
-
-    (response) => {
-
-        return response
-
-    },
-
-
+    (response) => response,
     async (error) => {
-
-        /*
-        |--------------------------------------------------------------------------
-        | No response from server
-        |--------------------------------------------------------------------------
-        */
-
         if (!error.response) {
-
             error.isNetworkError = true
-
-            error.apiMessage =
-                'ارتباط با سرور برقرار نشد.'
-
+            error.apiMessage = translateApiMessage(error.message)
             return Promise.reject(error)
-
         }
 
+        const status = error.response.status
+        const responseMessage = error.response.data?.message
 
-        const status =
-            error.response.status
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | 401 - Unauthenticated
-        |--------------------------------------------------------------------------
-        */
+        error.apiMessage = translateApiMessage(responseMessage, status)
 
         if (status === 401) {
-
-            localStorage.removeItem(
-                'derincode_token'
-            )
-
-
-            /*
-            | Do not redirect automatically here.
-            | Auth store / router can decide what to do.
-            */
-
+            localStorage.removeItem('derincode_token')
         }
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | 403 - Forbidden
-        |--------------------------------------------------------------------------
-        */
-
-        if (status === 403) {
-
-            error.apiMessage =
-                error.response.data?.message ||
-                'شما اجازه انجام این عملیات را ندارید.'
-
-        }
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | 422 - Validation
-        |--------------------------------------------------------------------------
-        */
 
         if (status === 422) {
-
-            error.apiErrors =
-                error.response.data?.errors || {}
-
-
-            error.apiMessage =
-                error.response.data?.message ||
-                'اطلاعات وارد شده صحیح نیست.'
-
+            error.apiErrors = error.response.data?.errors || {}
         }
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | 429 - Too Many Requests
-        |--------------------------------------------------------------------------
-        */
-
-        if (status === 429) {
-
-            error.apiMessage =
-                error.response.data?.message ||
-                'تعداد درخواست‌ها بیش از حد مجاز است.'
-
-        }
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | 500+
-        |--------------------------------------------------------------------------
-        */
-
-        if (status >= 500) {
-
-            error.apiMessage =
-                error.response.data?.message ||
-                'خطایی در سرور رخ داده است.'
-
-        }
-
 
         return Promise.reject(error)
-
     }
-
 )
 
 
