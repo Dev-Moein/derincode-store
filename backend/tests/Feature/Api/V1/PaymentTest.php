@@ -38,7 +38,7 @@ class PaymentTest extends TestCase
             'status' => ProjectStatus::PUBLISHED,
             'is_for_sale' => true,
             'price' => 1500,
-            'currency' => 'USD',
+            'currency' => 'IRT',
         ]);
     }
 
