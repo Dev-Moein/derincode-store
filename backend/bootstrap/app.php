@@ -11,7 +11,6 @@ use Illuminate\Http\Exceptions\ThrottleRequestsException;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
-
 return Application::configure(
     basePath: dirname(__DIR__)
 )
@@ -78,25 +77,25 @@ return Application::configure(
                 status: 401,
             );
         });
-            /*
+        /*
 |--------------------------------------------------------------------------
 | 403 - Forbidden
 |--------------------------------------------------------------------------
 */
 
-$exceptions->render(function (
-    AuthorizationException $e,
-    $request
-) {
-    if (! $request->is('api/*')) {
-        return null;
-    }
+        $exceptions->render(function (
+            AuthorizationException $e,
+            $request
+        ) {
+            if (! $request->is('api/*')) {
+                return null;
+            }
 
-    return ApiResponse::error(
-        message: 'شما اجازه انجام این عملیات را ندارید.',
-        status: 403,
-    );
-});
+            return ApiResponse::error(
+                message: 'شما اجازه انجام این عملیات را ندارید.',
+                status: 403,
+            );
+        });
         /*
         |--------------------------------------------------------------------------
         | 404 - Resource Not Found
@@ -138,29 +137,54 @@ $exceptions->render(function (
         });
         /*
 |--------------------------------------------------------------------------
+| 409 - Project Cannot Be Deleted
+|--------------------------------------------------------------------------
+*/
+
+        $exceptions->render(function (
+            RuntimeException $e,
+            $request
+        ) {
+            if (! $request->is('api/*')) {
+                return null;
+            }
+
+            if (
+                $e->getMessage() !==
+                'این پروژه دارای سوابق پرداخت است و امکان حذف فیزیکی آن وجود ندارد.'
+            ) {
+                return null;
+            }
+
+            return ApiResponse::error(
+                message: $e->getMessage(),
+                status: 409,
+            );
+        });
+        /*
+|--------------------------------------------------------------------------
 | 500 - Server Error
 |--------------------------------------------------------------------------
 */
 
-$exceptions->render(function (
-    Throwable $e,
-    $request
-) {
+        $exceptions->render(function (
+            Throwable $e,
+            $request
+        ) {
 
-    if (! $request->is('api/*')) {
-        return null;
-    }
+            if (! $request->is('api/*')) {
+                return null;
+            }
 
+            return ApiResponse::error(
+                message: app()->environment('production')
+                    ? 'خطایی در سرور رخ داده است. لطفاً کمی بعد دوباره تلاش کنید.'
+                    : $e->getMessage(),
 
-    return ApiResponse::error(
-        message: app()->environment('production')
-            ? 'خطایی در سرور رخ داده است. لطفاً کمی بعد دوباره تلاش کنید.'
-            : $e->getMessage(),
+                status: 500,
+            );
 
-        status: 500,
-    );
-
-});
+        });
     })
 
     ->create();

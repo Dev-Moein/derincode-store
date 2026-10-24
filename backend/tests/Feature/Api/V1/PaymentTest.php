@@ -238,7 +238,7 @@ class PaymentTest extends TestCase
             ->assertUnprocessable()
             ->assertJson([
                 'success' => false,
-                'message' => 'Validation failed.',
+                'message' => 'اطلاعات واردشده معتبر نیست. لطفاً موارد مشخص‌شده را بررسی کنید.',
             ]);
     }
 

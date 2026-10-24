@@ -56,7 +56,7 @@ class ProfileTest extends TestCase
             ->assertUnauthorized()
             ->assertJson([
                 'success' => false,
-                'message' => 'Unauthenticated.',
+                'message' => 'برای انجام این عملیات باید وارد حساب کاربری شوید.',
             ]);
     }
 
@@ -119,7 +119,7 @@ class ProfileTest extends TestCase
             ->assertUnprocessable()
             ->assertJson([
                 'success' => false,
-                'message' => 'Validation failed.',
+                'message' => 'اطلاعات واردشده معتبر نیست. لطفاً موارد مشخص‌شده را بررسی کنید.',
             ])
             ->assertJsonStructure([
                 'errors' => [
@@ -200,7 +200,7 @@ class ProfileTest extends TestCase
             ->assertUnauthorized()
             ->assertJson([
                 'success' => false,
-                'message' => 'Unauthenticated.',
+                'message' => 'برای انجام این عملیات باید وارد حساب کاربری شوید.',
             ]);
     }
 }

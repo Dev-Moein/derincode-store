@@ -61,7 +61,7 @@ class DashboardTest extends TestCase
             ->assertUnauthorized()
             ->assertJson([
                 'success' => false,
-                'message' => 'Unauthenticated.',
+                'message' => 'برای انجام این عملیات باید وارد حساب کاربری شوید.',
             ]);
     }
 

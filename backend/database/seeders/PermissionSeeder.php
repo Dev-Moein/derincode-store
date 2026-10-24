@@ -28,7 +28,11 @@ class PermissionSeeder extends Seeder
                 'slug' => 'users.update',
                 'description' => 'Update users in admin panel.',
             ],
-
+            [
+                'name' => 'View Projects',
+                'slug' => 'projects.view',
+                'description' => 'View projects in admin panel.',
+            ],
             [
                 'name' => 'Create Projects',
                 'slug' => 'projects.create',
