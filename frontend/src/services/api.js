@@ -20,6 +20,70 @@ const api = axios.create({
 })
 
 
+const fieldLabels = {
+    name: 'نام و نام خانوادگی',
+    email: 'ایمیل',
+    phone: 'شماره تماس',
+    password: 'رمز عبور',
+    password_confirmation: 'تکرار رمز عبور',
+    title: 'عنوان',
+    slug: 'شناسه',
+    short_description: 'توضیح کوتاه',
+    description: 'توضیحات',
+    price: 'قیمت',
+    currency: 'واحد پول',
+    status: 'وضعیت',
+    file: 'فایل',
+    images: 'تصاویر',
+    project: 'پروژه',
+    project_id: 'پروژه',
+    user_id: 'کاربر',
+    role: 'نقش کاربر',
+    budget: 'بودجه',
+    admin_note: 'یادداشت مدیر',
+    otp: 'کد تأیید',
+}
+
+const translateValidationMessage = (message, key) => {
+    if (typeof message !== 'string' || /[\\u0600-\\u06FF]/.test(message)) {
+        return message
+    }
+
+    const field = fieldLabels[key?.split('.')[0]] || 'این فیلد'
+    const rules = [
+        [/^The (.+) field is required\\.?$/i, `وارد کردن ${field} الزامی است.`],
+        [/^The (.+) field must be a string\\.?$/i, `${field} باید متن باشد.`],
+        [/^The (.+) field must be a valid email address\\.?$/i, 'فرمت ایمیل واردشده معتبر نیست.'],
+        [/^The (.+) field must be a number\\.?$/i, `${field} باید عددی باشد.`],
+        [/^The (.+) field must be an integer\\.?$/i, `${field} باید عدد صحیح باشد.`],
+        [/^The (.+) field must be at least (\\d+) characters?\\.?$/i, null],
+        [/^The (.+) field must not be greater than (\\d+) characters?\\.?$/i, null],
+        [/^The (.+) field has already been taken\\.?$/i, `این ${field} قبلاً ثبت شده است.`],
+        [/^The (.+) field confirmation does not match\\.?$/i, 'تأیید رمز عبور با مقدار واردشده مطابقت ندارد.'],
+        [/^The selected (.+) is invalid\\.?$/i, `مقدار انتخاب‌شده برای ${field} معتبر نیست.`],
+        [/^The (.+) field must be a file\\.?$/i, `${field} باید یک فایل باشد.`],
+        [/^The (.+) field must be a valid URL\\.?$/i, `آدرس ${field} معتبر نیست.`],
+    ]
+
+    for (const [pattern, translated] of rules) {
+        const match = message.match(pattern)
+        if (!match) continue
+
+        if (pattern.source.includes('at least')) {
+            return `${field} باید حداقل ${match[2]} نویسه باشد.`
+        }
+
+        if (pattern.source.includes('not be greater')) {
+            return `طول ${field} نباید بیشتر از ${match[2]} نویسه باشد.`
+        }
+
+        return translated
+    }
+
+    return translateApiMessage(message, 422)
+}
+
+
 const translateApiMessage = (message, status) => {
     const knownMessages = {
         'Validation failed.': 'اطلاعات واردشده معتبر نیست. لطفاً موارد مشخص‌شده را بررسی کنید.',
@@ -125,7 +189,15 @@ api.interceptors.response.use(
         }
 
         if (status === 422) {
-            error.apiErrors = error.response.data?.errors || {}
+            const rawErrors = error.response.data?.errors || {}
+
+            error.apiErrors = Object.fromEntries(
+                Object.entries(rawErrors).map(([key, messages]) => [
+                    key,
+                    (Array.isArray(messages) ? messages : [messages])
+                        .map((message) => translateValidationMessage(message, key)),
+                ])
+            )
         }
 
         return Promise.reject(error)
