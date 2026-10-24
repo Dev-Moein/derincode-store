@@ -48,7 +48,7 @@ class DownloadTest extends TestCase
             'user_id' => $user->id,
             'project_id' => $project->id,
             'amount' => 100,
-            'currency' => 'USD',
+            'currency' => 'IRT',
             'gateway' => 'zarinpal',
             'transaction_id' => 'TEST-'.fake()->unique()->numerify('######'),
             'status' => PaymentStatus::SUCCESSFUL,
@@ -256,7 +256,7 @@ class DownloadTest extends TestCase
             'user_id' => $user->id,
             'project_id' => $project->id,
             'amount' => 100,
-            'currency' => 'USD',
+            'currency' => 'IRT',
             'gateway' => 'zarinpal',
             'status' => PaymentStatus::FAILED,
         ]);
@@ -300,7 +300,7 @@ class DownloadTest extends TestCase
             'user_id' => $user->id,
             'project_id' => $project->id,
             'amount' => 100,
-            'currency' => 'USD',
+            'currency' => 'IRT',
             'gateway' => 'zarinpal',
             'status' => PaymentStatus::CANCELLED,
         ]);
