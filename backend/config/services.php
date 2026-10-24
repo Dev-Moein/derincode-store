@@ -32,24 +32,15 @@ return [
     'zarinpal' => [
         'merchant_id' => env('ZARINPAL_MERCHANT_ID'),
         'sandbox' => env('ZARINPAL_SANDBOX', true),
-        'request_url' => env(
-            'ZARINPAL_REQUEST_URL',
-            env('ZARINPAL_SANDBOX', true)
-                ? 'https://sandbox.zarinpal.com/pg/v4/payment/request.json'
-                : 'https://payment.zarinpal.com/pg/v4/payment/request.json'
-        ),
-        'verify_url' => env(
-            'ZARINPAL_VERIFY_URL',
-            env('ZARINPAL_SANDBOX', true)
-                ? 'https://sandbox.zarinpal.com/pg/v4/payment/verify.json'
-                : 'https://payment.zarinpal.com/pg/v4/payment/verify.json'
-        ),
-        'payment_url' => env(
-            'ZARINPAL_PAYMENT_URL',
-            env('ZARINPAL_SANDBOX', true)
-                ? 'https://sandbox.zarinpal.com/pg/StartPay/'
-                : 'https://www.zarinpal.com/pg/StartPay/'
-        ),
+        'request_url' => env('ZARINPAL_SANDBOX', true)
+            ? 'https://sandbox.zarinpal.com/pg/v4/payment/request.json'
+            : 'https://payment.zarinpal.com/pg/v4/payment/request.json',
+        'verify_url' => env('ZARINPAL_SANDBOX', true)
+            ? 'https://sandbox.zarinpal.com/pg/v4/payment/verify.json'
+            : 'https://payment.zarinpal.com/pg/v4/payment/verify.json',
+        'payment_url' => env('ZARINPAL_SANDBOX', true)
+            ? 'https://sandbox.zarinpal.com/pg/StartPay/'
+            : 'https://www.zarinpal.com/pg/StartPay/',
     ],
 
 ];
