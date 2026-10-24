@@ -18,7 +18,7 @@ return new class extends Migration
             $table->longText('description')->nullable();
 
             $table->decimal('price', 15, 2)->nullable();
-            $table->string('currency', 3)->default('IRR');
+            $table->string('currency', 3)->default('IRT');
 
             $table->boolean('is_for_sale')->default(false);
             $table->boolean('is_featured')->default(false);
