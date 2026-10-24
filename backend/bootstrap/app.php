@@ -53,7 +53,7 @@ return Application::configure(
             }
 
             return ApiResponse::error(
-                message: 'Validation failed.',
+                message: 'اطلاعات واردشده معتبر نیست. لطفاً موارد مشخص‌شده را بررسی کنید.',
                 status: 422,
                 errors: $e->errors(),
             );
@@ -74,7 +74,7 @@ return Application::configure(
             }
 
             return ApiResponse::error(
-                message: 'Unauthenticated.',
+                message: 'برای انجام این عملیات باید وارد حساب کاربری شوید.',
                 status: 401,
             );
         });
@@ -93,7 +93,7 @@ $exceptions->render(function (
     }
 
     return ApiResponse::error(
-        message: 'You do not have permission to perform this action.',
+        message: 'شما اجازه انجام این عملیات را ندارید.',
         status: 403,
     );
 });
@@ -112,7 +112,7 @@ $exceptions->render(function (
             }
 
             return ApiResponse::error(
-                message: 'Resource not found.',
+                message: 'مورد درخواستی پیدا نشد.',
                 status: 404,
             );
         });
@@ -132,7 +132,7 @@ $exceptions->render(function (
             }
 
             return ApiResponse::error(
-                message: 'Too many requests. Please try again later.',
+                message: 'تعداد درخواست‌ها بیش از حد مجاز است. لطفاً کمی بعد دوباره تلاش کنید.',
                 status: 429,
             );
         });
@@ -154,7 +154,7 @@ $exceptions->render(function (
 
     return ApiResponse::error(
         message: app()->environment('production')
-            ? 'Something went wrong.'
+            ? 'خطایی در سرور رخ داده است. لطفاً کمی بعد دوباره تلاش کنید.'
             : $e->getMessage(),
 
         status: 500,
