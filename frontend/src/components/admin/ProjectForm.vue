@@ -32,7 +32,7 @@ const form = reactive({
     short_description: '',
     description: '',
     price: '',
-    currency: 'IRR',
+    currency: 'IRT',
     is_for_sale: false,
     is_featured: false,
     status: 'draft',
@@ -74,7 +74,7 @@ const resetForm = () => {
     form.short_description = ''
     form.description = ''
     form.price = ''
-    form.currency = 'IRR'
+    form.currency = 'IRT'
     form.is_for_sale = false
     form.is_featured = false
     form.status = 'draft'
@@ -113,7 +113,7 @@ const fillForm = () => {
         props.project.price ?? ''
 
     form.currency =
-        props.project.currency || 'IRR'
+        props.project.currency || 'IRT'
 
     form.is_for_sale =
         Boolean(props.project.is_for_sale)
@@ -533,8 +533,8 @@ const submit = async () => {
                     :aria-invalid="!!fieldError('currency')"
                     :aria-describedby="fieldError('currency') ? 'project-currency-error' : undefined"
                 >
-                    <option value="IRR">
-                        IRR
+                    <option value="IRT">
+                        تومان (IRT)
                     </option>
 
                     <option value="USD">
