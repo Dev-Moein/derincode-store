@@ -132,7 +132,7 @@ class ZarinpalService implements PaymentGatewayInterface
 
         $amount = (string) $payment->amount;
 
-        if (preg_match('/^([0-9]+)(?:\\.0+)?$/', $amount, $matches) !== 1) {
+        if (preg_match('/^([0-9]+)(?:\.0+)?$/', $amount, $matches) !== 1) {
             return false;
         }
 
@@ -142,7 +142,7 @@ class ZarinpalService implements PaymentGatewayInterface
     private function gatewayAmount(Payment $payment): int
     {
         // Prices are stored in toman; Zarinpal's API expects Rial.
-        preg_match('/^([0-9]+)(?:\\.0+)?$/', (string) $payment->amount, $matches);
+        preg_match('/^([0-9]+)(?:\.0+)?$/', (string) $payment->amount, $matches);
 
         return ((int) $matches[1]) * 10;
     }
