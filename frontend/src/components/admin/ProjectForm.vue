@@ -51,6 +51,11 @@ const validationLabels = {
     status: 'وضعیت',
     file: 'فایل پروژه',
     images: 'تصاویر',
+    user_id: 'کاربر',
+    project_id: 'پروژه',
+    is_for_sale: 'وضعیت فروش',
+    is_featured: 'وضعیت پروژه منتخب',
+    published_at: 'تاریخ انتشار',
 }
 
 const fieldError = (key) => {
@@ -64,7 +69,7 @@ const extraErrors = () => Object.entries(store.errors || {})
         .filter(Boolean)
         .map((message, index) => ({
             key: `${key}-${index}`,
-            label: key.startsWith('images.') ? 'تصویر' : (validationLabels[key] || key),
+            label: key.startsWith('images.') ? 'تصویر' : (validationLabels[key.split('.')[0]] || 'فیلد دیگر'),
             message,
         })))
 
