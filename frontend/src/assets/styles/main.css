@@ -35,11 +35,7 @@ Fonts
 html {
     scroll-behavior: smooth;
     background: var(--bg-primary);
-<<<<<<< HEAD
     font-size: 17px;
-=======
-
->>>>>>> e454c9dbf8fd71620fa57c788aab53ddf53b3064
 }
 
 body {
