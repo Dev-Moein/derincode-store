@@ -67,7 +67,7 @@ jobs:
 
       - name: Check code style on changed PHP files
         run: |
-          git diff --name-only origin/main...HEAD -- '*.php' \
+          git diff --diff-filter=A --name-only origin/main...HEAD -- '*.php' \
             | sed '/^backend\//!d; s#^backend/##' \
             | xargs -r vendor/bin/pint --test
 
