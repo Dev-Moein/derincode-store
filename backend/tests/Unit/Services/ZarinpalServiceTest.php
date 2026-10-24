@@ -21,7 +21,7 @@ class ZarinpalServiceTest extends TestCase
         ]);
     }
 
-    public function test_request_uses_sandbox_and_sends_rial_amount(): void
+    public function test_request_converts_toman_to_rial_and_uses_sandbox(): void
     {
         Http::fake([
             'sandbox.zarinpal.com/pg/v4/payment/request.json' => Http::response([
@@ -35,7 +35,7 @@ class ZarinpalServiceTest extends TestCase
         $payment = new Payment([
             'project_id' => 12,
             'amount' => 150000,
-            'currency' => 'IRR',
+            'currency' => 'IRT',
         ]);
 
         $result = app(ZarinpalService::class)->request(
@@ -51,12 +51,12 @@ class ZarinpalServiceTest extends TestCase
 
         Http::assertSent(function ($request): bool {
             return $request->url() === 'https://sandbox.zarinpal.com/pg/v4/payment/request.json'
-                && $request['amount'] === 150000
+                && $request['amount'] === 1500000
                 && $request['merchant_id'] === 'test-merchant';
         });
     }
 
-    public function test_request_rejects_usd_instead_of_silently_treating_it_as_rial(): void
+    public function test_request_rejects_usd_instead_of_silently_treating_it_as_toman(): void
     {
         Http::fake();
 
