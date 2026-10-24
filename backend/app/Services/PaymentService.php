@@ -48,6 +48,14 @@ class PaymentService implements PaymentServiceInterface
             ]);
         }
 
+        if (strtoupper((string) $project->currency) !== 'IRT') {
+            throw ValidationException::withMessages([
+                'project' => [
+                    'Project prices must be configured in toman (IRT) before checkout.',
+                ],
+            ]);
+        }
+
         if (
             $project->price === null ||
             $project->price <= 0

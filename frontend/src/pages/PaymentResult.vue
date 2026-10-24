@@ -24,6 +24,7 @@ const status = computed(() => {
         'success',
         'cancelled',
         'failed',
+        'pending',
     ].includes(value)
         ? value
         : 'error'
@@ -128,7 +129,7 @@ onMounted(fetchPayment)
             </div>
 
             <div
-                v-else-if="status === 'cancelled'"
+                v-else-if="status === 'cancelled' || status === 'pending'"
                 class="result-icon cancelled"
                 aria-hidden="true"
             >
@@ -194,18 +195,24 @@ onMounted(fetchPayment)
             <div class="result-actions">
 
                 <button
-                    v-if="status === 'success'"
+                    v-if="status === 'success' || status === 'pending'"
                     type="button"
                     class="primary-button"
                     @click="goProfile"
                 >
                     <Download
+                        v-if="status === 'success'"
+                        :size="17"
+                        aria-hidden="true"
+                    />
+                    <Clock3
+                        v-else
                         :size="17"
                         aria-hidden="true"
                     />
 
                     <span>
-                        مشاهده پروژه‌ها و دانلود
+                        {{ status === 'success' ? 'مشاهده پروژه‌ها و دانلود' : 'بررسی وضعیت در حساب کاربری' }}
                     </span>
                 </button>
 

@@ -119,7 +119,7 @@ class ProjectTest extends TestCase
             'short_description' => 'Test short description.',
             'description' => 'Test project description.',
             'price' => 1500,
-            'currency' => 'USD',
+            'currency' => 'IRT',
             'is_for_sale' => true,
             'is_featured' => false,
             'status' => 'draft',
@@ -137,7 +137,7 @@ class ProjectTest extends TestCase
     {
         $response = $this->postJson('/api/v1/projects', [
             'title' => 'Unauthorized Project',
-            'currency' => 'USD',
+            'currency' => 'IRT',
             'status' => 'draft',
         ]);
 

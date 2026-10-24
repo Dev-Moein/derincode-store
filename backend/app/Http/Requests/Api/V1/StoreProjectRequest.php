@@ -50,7 +50,7 @@ class StoreProjectRequest extends FormRequest
 
             'currency' => [
                 'required',
-                Rule::in(['IRR', 'USD', 'EUR']),
+                Rule::in(['IRT']),
             ],
 
             'is_for_sale' => [

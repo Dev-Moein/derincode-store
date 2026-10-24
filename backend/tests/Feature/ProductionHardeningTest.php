@@ -115,7 +115,7 @@ class ProductionHardeningTest extends TestCase
 
         $project = Project::factory()->create([
             'price' => 1500,
-            'currency' => 'USD',
+            'currency' => 'IRT',
             'is_for_sale' => true,
             'status' => 'published',
         ]);

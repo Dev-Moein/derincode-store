@@ -38,7 +38,7 @@ class PaymentTest extends TestCase
             'status' => ProjectStatus::PUBLISHED,
             'is_for_sale' => true,
             'price' => 1500,
-            'currency' => 'USD',
+            'currency' => 'IRT',
         ]);
     }
 
@@ -579,6 +579,41 @@ class PaymentTest extends TestCase
         $this->assertDatabaseHas('payments', [
             'id' => $payment->id,
             'status' => PaymentStatus::FAILED->value,
+        ]);
+    }
+
+    /**
+     * A temporary gateway outage must not mark a potentially paid transaction as failed.
+     */
+    public function test_gateway_unavailable_keeps_payment_pending_for_later_verification(): void
+    {
+        $payment = Payment::factory()
+            ->pending()
+            ->create([
+                'authority' => 'TEST-AUTHORITY',
+            ]);
+
+        $this->mockPaymentGateway(
+            verifyResult: [
+                'success' => false,
+                'reason' => 'gateway_unavailable',
+            ]
+        );
+
+        $response = $this->get(
+            "/api/v1/payments/{$payment->id}/callback?" .
+            'Authority=TEST-AUTHORITY&Status=OK'
+        );
+
+        $response->assertRedirect();
+        $this->assertStringContainsString(
+            'status=pending',
+            $response->headers->get('Location')
+        );
+
+        $this->assertDatabaseHas('payments', [
+            'id' => $payment->id,
+            'status' => PaymentStatus::PENDING->value,
         ]);
     }
 

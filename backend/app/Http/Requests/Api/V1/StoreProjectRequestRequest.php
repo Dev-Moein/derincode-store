@@ -36,7 +36,7 @@ class StoreProjectRequestRequest extends FormRequest
 
             'currency' => [
                 'required',
-                Rule::in(['IRR', 'USD', 'EUR']),
+                Rule::in(['IRT', 'USD', 'EUR', 'USDT']),
             ],
 
         ];

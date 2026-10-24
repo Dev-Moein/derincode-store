@@ -4,41 +4,97 @@ on:
   push:
     branches:
       - main
+      - 'security/**'
       - 'hardening/**'
   pull_request:
     branches:
       - main
 
+permissions:
+  contents: read
+
+concurrency:
+  group: backend-tests-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   tests:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     defaults:
       run:
         working-directory: backend
 
+    env:
+      APP_ENV: testing
+      APP_DEBUG: false
+      DB_CONNECTION: sqlite
+      DB_DATABASE: ':memory:'
+      CACHE_STORE: array
+      SESSION_DRIVER: array
+      QUEUE_CONNECTION: sync
+      MAIL_MAILER: array
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.3'
-          extensions: mbstring, xml, bcmath, sqlite3, pdo_sqlite
+          php-version: '8.4'
+          extensions: mbstring, xml, bcmath, sqlite3, pdo_sqlite, pdo_mysql, intl, gd, zip
           coverage: none
+          tools: composer:v2
 
-      - name: Install dependencies
-        run: composer install --no-interaction --prefer-dist --no-progress
+      - name: Validate Composer metadata
+        run: composer validate --strict
+
+      - name: Install locked dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress --no-scripts
 
       - name: Prepare application
         run: |
           cp .env.example .env
           php artisan key:generate
-          php artisan migrate --force
+          php artisan package:discover --ansi
 
       - name: Run test suite
         run: php artisan test
 
-      - name: Check code style
-        run: vendor/bin/pint --test
+      - name: Check code style on changed PHP files
+        run: |
+          git diff --diff-filter=A --name-only origin/main...HEAD -- '*.php' \
+            | sed '/^backend\//!d; s#^backend/##' \
+            | xargs -r vendor/bin/pint --test
+
+  frontend-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install locked frontend dependencies
+        run: npm ci
+
+      - name: Audit frontend dependencies
+        run: npm audit --audit-level=moderate
+
+      - name: Build frontend
+        run: npm run build

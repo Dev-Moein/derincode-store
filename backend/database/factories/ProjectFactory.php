@@ -24,7 +24,7 @@ class ProjectFactory extends Factory
             'short_description' => fake()->sentence(),
             'description' => fake()->paragraphs(2, true),
             'price' => fake()->randomFloat(2, 100, 100000),
-            'currency' => 'USD',
+            'currency' => 'IRT',
             'is_for_sale' => true,
             'is_featured' => false,
             'status' => ProjectStatus::DRAFT,
