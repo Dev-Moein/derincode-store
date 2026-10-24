@@ -1,7 +1,17 @@
-# Laravel
+# Laravel environment and secrets
 backend/.env
 backend/.env.*
 !backend/.env.example
+backend/auth.json
+
+# Database dumps and local exports (never commit real data)
+*.sql
+*.sql.gz
+*.dump
+*.bak
+*.backup
+backups/
+database-backups/
 
 # Laravel runtime
 backend/storage/*.key
@@ -10,21 +20,23 @@ backend/storage/framework/*
 backend/storage/logs/*
 backend/bootstrap/cache/*
 
-# Dependencies
+# Dependencies and generated assets
 backend/vendor/
 backend/node_modules/
+backend/public/build/
+frontend/node_modules/
+frontend/dist/
 
-# Docker
+# Docker persistent data
 mysql_data/
 redis_data/
 
-# IDE
+# IDE and OS
 .idea/
 .vscode/
-
-# OS
 .DS_Store
 Thumbs.db
 
-# Logs
+# Logs and local test artifacts
 *.log
+.phpunit.result.cache
