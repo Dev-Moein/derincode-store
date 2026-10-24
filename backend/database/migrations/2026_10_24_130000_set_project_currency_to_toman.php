@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         DB::table('projects')
-            ->whereIn('currency', ['IRR', 'USD'])
+            ->whereIn('currency', ['IRR', 'USD', 'EUR'])
             ->update(['currency' => 'IRT']);
     }
 
