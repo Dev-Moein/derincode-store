@@ -29,6 +29,17 @@ const form = reactive({
 
 const initialized = ref(false)
 
+const validationLabels = {
+    status: 'وضعیت درخواست',
+    admin_note: 'یادداشت مدیر',
+    title: 'عنوان',
+    description: 'توضیحات',
+    budget: 'بودجه',
+    currency: 'واحد پول',
+    user_id: 'کاربر',
+    project_id: 'پروژه',
+}
+
 const fieldError = (key) => {
     const value = store.errors?.[key]
     return Array.isArray(value) ? value[0] : (typeof value === 'string' ? value : '')
@@ -38,7 +49,11 @@ const extraErrors = () => Object.entries(store.errors || {})
     .filter(([key]) => !['status', 'admin_note'].includes(key))
     .flatMap(([key, value]) => (Array.isArray(value) ? value : [value])
         .filter(Boolean)
-        .map((message, index) => ({ key: `${key}-${index}`, message })))
+        .map((message, index) => ({
+            key: `${key}-${index}`,
+            label: validationLabels[key.split('.')[0]] || 'فیلد دیگر',
+            message,
+        })))
 
 const statuses = [
     {
@@ -215,7 +230,7 @@ const submit = async () => {
             <strong>خطاهای اعتبارسنجی:</strong>
             <ul>
                 <li v-for="item in extraErrors()" :key="item.key">
-                    {{ item.key }}: {{ item.message }}
+                    {{ item.label }}: {{ item.message }}
                 </li>
             </ul>
         </div>
