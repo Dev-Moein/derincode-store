@@ -35,7 +35,7 @@ class ZarinpalService implements PaymentGatewayInterface
                 ->timeout(15)
                 ->post($this->requestUrl, [
                     'merchant_id' => $this->merchantId,
-                    'amount' => (int) $payment->amount,
+                    'amount' => $this->gatewayAmount($payment),
                     'callback_url' => $callbackUrl,
                     'description' => sprintf('Purchase project #%d', $payment->project_id),
                 ]);
@@ -89,7 +89,7 @@ class ZarinpalService implements PaymentGatewayInterface
                 ->timeout(15)
                 ->post($this->verifyUrl, [
                     'merchant_id' => $this->merchantId,
-                    'amount' => (int) $payment->amount,
+                    'amount' => $this->gatewayAmount($payment),
                     'authority' => $authority,
                 ]);
         } catch (ConnectionException) {
@@ -126,7 +126,7 @@ class ZarinpalService implements PaymentGatewayInterface
     private function hasSupportedAmount(Payment $payment): bool
     {
         // Zarinpal v4 expects integer Rial amounts; do not convert USD/Toman silently.
-        if (strtoupper((string) $payment->currency) !== 'IRR') {
+        if (strtoupper((string) $payment->currency) !== 'IRT') {
             return false;
         }
 
@@ -136,6 +136,14 @@ class ZarinpalService implements PaymentGatewayInterface
             return false;
         }
 
-        return (int) $matches[1] > 0;
+        return (int) $matches[1] > 0 && (int) $matches[1] <= intdiv(PHP_INT_MAX, 10);
+    }
+
+    private function gatewayAmount(Payment $payment): int
+    {
+        // Prices are stored in toman; Zarinpal's API expects Rial.
+        preg_match('/^([0-9]+)(?:\\.0+)?$/', (string) $payment->amount, $matches);
+
+        return ((int) $matches[1]) * 10;
     }
 }
