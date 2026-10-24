@@ -28,7 +28,7 @@ const form = reactive({
     title: props.project?.title || '',
     description: '',
     budget: '',
-    currency: 'IRR',
+    currency: 'IRT',
 })
 
 const success = ref(false)
@@ -261,8 +261,8 @@ const submit = async () => {
                                 : undefined
                         "
                     >
-                        <option value="IRR">
-                            IRR
+                        <option value="IRT">
+                            تومان (IRT)
                         </option>
 
                         <option value="USD">
@@ -271,6 +271,9 @@ const submit = async () => {
 
                         <option value="EUR">
                             EUR
+                        </option>
+                        <option value="USDT">
+                            تتر (USDT)
                         </option>
                     </select>
 
